@@ -1,0 +1,9 @@
+## Interface: 120000
+## Title: Ascension Sound
+## Notes: Easy way to manage the sound settings of the game.
+## Author: AkaDoctorCode
+## Version: 01
+## SavedVariables: AscensionSoundDB
+## IconTexture: Interface\AddOns\AscensionSound\Media\AkaDoctorCode.png
+
+AscensionSound.lua
