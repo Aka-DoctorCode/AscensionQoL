@@ -2,7 +2,7 @@
 -- Project: AscensionSound
 -- Author: Aka-DoctorCode 
 -- File: AscensionSound.lua
--- Version: 12.0.0
+-- Version: 02
 -------------------------------------------------------------------------------
 -- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --
@@ -74,7 +74,9 @@ function addon:CreateUI()
     frame:SetScript("OnDragStart", function(self)
         self:StartMoving()
     end)
-    frame:SetClampedToScreen(true) -- Prevents the frame from going off-screen
+    frame:SetClampedToScreen(true)
+
+    frame:SetScale(AscensionSoundDB.scale or 1.0)
 
     frame:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
@@ -96,6 +98,14 @@ function addon:CreateUI()
     masterMuteBtn:SetHitRectInsets(0, 0, 0, 0)
     masterMuteBtn:SetPoint("LEFT", frame, "LEFT", 5, 0)
     masterMuteBtn.tooltip = "Master Mute"
+    masterMuteBtn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(self.tooltip, 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    masterMuteBtn:SetScript("OnLeave", function(self)
+        GameTooltip:Hide()
+    end)
     masterMuteBtn:SetScript("OnClick", function(self)
         local isEnabled = self:GetChecked()
         UpdateCVar(cvars.Master.toggle, isEnabled and "1" or "0")
@@ -153,7 +163,9 @@ function addon:CreateUI()
     for _, type in ipairs(sliderOrder) do
         local data = cvars[type]
         if data then
-            addon:CreateSliderControl(dropdown, type, data, startY)
+            local slider, checkbox = addon:CreateSliderControl(dropdown, type, data, startY)
+            checkbox:SetChecked(GetCVarBool(data.toggle))
+            slider:SetValue(GetCVarNumber(data.volume))
             startY = startY - 50
         end
     end
@@ -197,6 +209,8 @@ function addon:CreateSliderControl(parent, labelText, cvarData, yOffset)
     slider:SetScript("OnShow", function(self)
         self:SetValue(GetCVarNumber(cvarData.volume))
     end)
+
+    return slider, cb
 end
 
 function addon:ToggleDropdown()
@@ -216,12 +230,42 @@ end
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
-        if not AscensionSoundDB then AscensionSoundDB = defaults end
+        if not AscensionSoundDB then 
+            AscensionSoundDB = defaults 
+        else
+            for k, v in pairs(defaults) do
+                if AscensionSoundDB[k] == nil then
+                    AscensionSoundDB[k] = v
+                end
+            end
+        end
+
         addon:CreateUI()
         
-        -- Restore dropdown state if desired, or keep closed by default
         if AscensionSoundDB.isExpanded then
             addon:ToggleDropdown()
         end
+        self:UnregisterEvent("PLAYER_LOGIN")
     end
 end)
+
+--  SLASH COMMANDS
+SLASH_ASCENSIONSOUND1 = "/as"
+SlashCmdList["ASCENSIONSOUND"] = function(msg)
+    local command = strtrim(msg):lower()
+    
+    if command == "reset" then
+        AscensionSoundDB.point = defaults.point
+        AscensionSoundDB.relativePoint = defaults.relativePoint
+        AscensionSoundDB.x = defaults.x
+        AscensionSoundDB.y = defaults.y
+        AscensionSoundDB.scale = defaults.scale
+        
+        frame:ClearAllPoints()
+        frame:SetPoint(defaults.point, UIParent, defaults.relativePoint, defaults.x, defaults.y)
+        frame:SetScale(defaults.scale)
+        print("|cff00ff00Ascension Sound:|r Position and scale reset.")
+    else
+        addon:ToggleDropdown()
+    end
+end
