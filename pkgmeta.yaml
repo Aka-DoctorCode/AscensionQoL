@@ -8,7 +8,7 @@ optional-dependencies:
 ignore:
     - __MACOSX
     - pkgmeta.yaml
-    - /cambios.txt
+    - Cambios.txt
 
 manual-changelog: 
     filename: CHANGELOG.txt
