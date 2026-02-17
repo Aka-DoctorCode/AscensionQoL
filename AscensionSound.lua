@@ -2,7 +2,7 @@
 -- Project: AscensionSound
 -- Author: Aka-DoctorCode 
 -- File: AscensionSound.lua
--- Version: 03
+-- Version: 04
 -------------------------------------------------------------------------------
 -- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --
