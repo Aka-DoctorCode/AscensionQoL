@@ -1,9 +1,5 @@
-<h1>V04</h1>
-<h2>Rename to: <b>Ascension Quality of Life (QoL)</b>, This add on will contain smaller add ons (modules) to provide QoL
-    settings or additions that I find useful or that I have need</h2>
+<h1>V05</h1>
 <ul>
-    <li>Rename to AscensionQoL</li>
-    <li>Ascension Sound has become the first module</li>
-    <li>.toc Update</li>
-    <li>Packager Update</li>
+    <li>Update to Packager</li>
+    <li>Trash files removed</li>
 </ul>
