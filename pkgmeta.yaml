@@ -9,8 +9,6 @@ ignore:
     - __MACOSX
     - pkgmeta.yaml
     - cambios.txt
-move-folders:
-    - AscensionSound.lua: AscensionSound/AscensionSound.lua
 manual-changelog: 
     filename: CHANGELOG.txt
     markup-type: html
