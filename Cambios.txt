@@ -1,46 +1,9 @@
+Mostrar el volumen maestro actual en la barra principal: Añadir un texto (ej. “75%”) entre los botones `-` y `+` o sobre ellos, actualizándolo cada vez que se modifique el volumen maestro.
+Añadir soporte de localización (i18n): Crear una tabla `L` con strings traducibles (ej. “Master Mute”, nombres de canales) y cargar el idioma según el cliente del jugador.
+Envolver todas las llamadas a `C_CVar` en `pcall`: Proteger el addon ante posibles fallos de API o CVars inexistentes, mostrando un mensaje de error solo si es necesario.
 
-11. **Hacer configurable el paso de los botones +/-**  
-    - Agregar una variable `step` en `defaults` (por defecto 0.1) y permitir modificarla con `/as step <0.01-0.5>`. Usar ese valor en los botones de incremento/decremento.
-
-12. **Restaurar valor por defecto con clic derecho en los sliders**  
-    - Enlazar un script `OnMouseDown` (botón derecho) que obtenga el valor por defecto del CVar mediante `C_CVar.GetCVarDefault` y lo aplique.
-
-13. **Mostrar el volumen maestro actual en la barra principal**  
-    - Añadir un texto (ej. “75%”) entre los botones `-` y `+` o sobre ellos, actualizándolo cada vez que se modifique el volumen maestro.
-
-14. **Mejorar la estética visual**  
-    - Utilizar texturas personalizadas para el fondo de la barra y el desplegable (bordes redondeados, transparencia elegante). Reemplazar el fondo negro sólido por algo más atractivo.
-
-15. **Añadir soporte de localización (i18n)**  
-    - Crear una tabla `L` con strings traducibles (ej. “Master Mute”, nombres de canales) y cargar el idioma según el cliente del jugador.
-
-16. **Extender los comandos slash**  
-    - Implementar:  
-      - `/as toggle` (alterna el desplegable).  
-      - `/as volume <canal> <0.0-1.0>` (ej. `/as volume master 0.8`).  
-      - `/as list` para mostrar los canales disponibles.
-
-17. **Envolver todas las llamadas a `C_CVar` en `pcall`**  
-    - Proteger el addon ante posibles fallos de API o CVars inexistentes, mostrando un mensaje de error solo si es necesario.
-
-18. **Compatibilidad con versiones antiguas de WoW (Classic)**  
-    - Detectar el tipo de cliente y, si `C_CVar` no existe, usar las funciones globales `SetCVar()` y `GetCVar()` directamente mediante un wrapper condicional.
-
-
-
+- FPS Meter
+- Agregar un slider para controlar los FPS
+- Agregar un controlador de perfil de edicion
 
 Changelog:
-    - New Desing and look. 
-    - Added a number indicator for each slider.
-    - Resize frame an dropdown.
-    - Slider dropdown respect screen boundries.
-      - New logic for dynamic height for future features.
-    - Corrected checkboxes scaling.
-    
-    - Right click menu added.
-       - Lock position added.
-       - Scale controls added.
-    
-    - Removed slash command.
-    
-    - Stability improvements.
