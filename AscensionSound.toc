@@ -2,7 +2,7 @@
 ## Title: Ascension Sound
 ## Notes: Easy way to manage the sound settings of the game.
 ## Author: AkaDoctorCode
-## Version: 02
+## Version: 03
 ## SavedVariables: AscensionSoundDB
 ## IconTexture: Interface\AddOns\AscensionSound\Media\AkaDoctorCode.png
 
