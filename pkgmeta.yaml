@@ -9,7 +9,7 @@ ignore:
     - __MACOSX
     - pkgmeta.yaml
     - cambios.txt
-move-folder: 
+move-folders:
     - AscensionQoL/modules/AscensionSound: AscensionSound
 manual-changelog: 
     filename: CHANGELOG.txt
