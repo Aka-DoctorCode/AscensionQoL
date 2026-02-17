@@ -2,7 +2,7 @@
 ## Title: Ascension QoL
 ## Notes: Faster Access to some in game options and other QoL.
 ## Author: AkaDoctorCode
-## Version: 04
+## Version: 05
 ## SavedVariables: AscensionSoundDB
 ## IconTexture: Interface\AddOns\AscensionQoL\Media\AkaDoctorCode.png
 
