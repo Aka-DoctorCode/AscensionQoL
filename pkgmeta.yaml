@@ -10,7 +10,7 @@ ignore:
     - pkgmeta.yaml
     - cambios.txt
 move-folders:
-    - AscensionQoL/modules/AscensionSound: AscensionSound
+    - AscensionSound.lua: AscensionSound/AscensionSound.lua
 manual-changelog: 
     filename: CHANGELOG.txt
     markup-type: html
