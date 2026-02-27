@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 -- Project: AscensionSound
--- Author: Aka-DoctorCode 
+-- Author: Aka-DoctorCode
 -- File: AscensionSound.lua
 -- Version: 03
 -------------------------------------------------------------------------------
 -- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --
 -- This software and its source code are the exclusive property of the author.
--- No part of this file may be copied, modified, redistributed, or used in 
+-- No part of this file may be copied, modified, redistributed, or used in
 -- derivative works without express written permission.
 -------------------------------------------------------------------------------
 
@@ -15,24 +15,27 @@
 local addonName, addon = ...
 local frame = CreateFrame("Frame", "AscensionSoundMainFrame", UIParent, "BackdropTemplate")
 
+---@diagnostic disable-next-line: undefined-global
+local AscensionSoundDB = AscensionSoundDB
+
 --------------------------------------------------------------------------------
 -- COLOR SCHEME
 -------------------------------------------------------------------------------
 local COLORS = {
-    bg= { 0.08, 0.08, 0.08, 0.85 },
-    window_border= { 0.4,  0.4,  0.4,  1.0 },
-    text_title= { 1.0,  0.8,  0.0,  1.0 },
-    text_normal= { 1.0,  1.0,  1.0,  1.0 },
-    text_dim= { 0.6,  0.6,  0.6,  1.0 },
-    text_highlight= { 1.0,  1.0,  0.0,  1.0 },
-    input_bg= { 0.15, 0.15, 0.15, 0.85 },
-    input_border= { 0.4,  0.4,  0.4, 1.0 },
-    input_focus= { 1.0,  0.8,  0.0,  1.0 },
-    menu_bg= { 0.12, 0.12, 0.12, 0.85 },
-    sidebar_accent= { 0.8,  0.6,  0.2,  1.0 },
-    card_bg= { 0.15, 0.15, 0.15, 0.85 },
-    card_border= { 0.3,  0.3,  0.3,  1.0 },
-    card_hover= { 0.8,  0.6,  0.2,  1.0 },
+    bg = { 0.08, 0.08, 0.08, 0.85 },
+    window_border = { 0.4, 0.4, 0.4, 1.0 },
+    text_title = { 1.0, 0.8, 0.0, 1.0 },
+    text_normal = { 1.0, 1.0, 1.0, 1.0 },
+    text_dim = { 0.6, 0.6, 0.6, 1.0 },
+    text_highlight = { 1.0, 1.0, 0.0, 1.0 },
+    input_bg = { 0.15, 0.15, 0.15, 0.85 },
+    input_border = { 0.4, 0.4, 0.4, 1.0 },
+    input_focus = { 1.0, 0.8, 0.0, 1.0 },
+    menu_bg = { 0.12, 0.12, 0.12, 0.85 },
+    sidebar_accent = { 0.8, 0.6, 0.2, 1.0 },
+    card_bg = { 0.15, 0.15, 0.15, 0.85 },
+    card_border = { 0.3, 0.3, 0.3, 1.0 },
+    card_hover = { 0.8, 0.6, 0.2, 1.0 },
 }
 
 -- Default settings
@@ -43,7 +46,7 @@ local defaults = {
     y = 0,
     scale = 1.0,
     isExpanded = false,
-    locked = false, 
+    locked = false,
 }
 
 -- CVars map
@@ -104,7 +107,7 @@ function addon:CreateStyledButton(parent, text, style)
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 1,
     })
-    
+
     if style == "primary" then
         btn:SetBackdropColor(0.2, 0.5, 0.2, 1)
         btn:SetBackdropBorderColor(0.4, 0.8, 0.4, 1)
@@ -138,6 +141,7 @@ function addon:CreateStyledButton(parent, text, style)
 
     return btn
 end
+
 --------------------------------------------------------------------------------
 -- CONTEXT MENU
 --------------------------------------------------------------------------------
@@ -186,7 +190,10 @@ function addon:CreateContextMenu()
             if not colorOverride then
                 s.text:SetTextColor(unpack(COLORS.text_normal))
             end
-            if s.bg then s.bg:Hide() s.bg = nil end
+            if s.bg then
+                s.bg:Hide()
+                s.bg = nil
+            end
         end)
         return btn
     end
@@ -301,7 +308,7 @@ function addon:CreateContextMenu()
     -- 6. Closer (full‑screen click catcher) – now parented to UIParent
     local closer = CreateFrame("Button", nil, UIParent)
     closer:SetFrameStrata("DIALOG")
-    closer:SetFrameLevel(f:GetFrameLevel() - 1)  -- below the menu
+    closer:SetFrameLevel(f:GetFrameLevel() - 1) -- below the menu
     closer:SetAllPoints(UIParent)
     closer:SetScript("OnClick", function() f:Hide() end)
     closer:Hide()
@@ -320,7 +327,7 @@ end
 
 function addon:CreateDropdownCatcher()
     if self.dropdownCatcher then return end
-    
+
     local catcher = CreateFrame("Button", nil, UIParent)
     catcher:SetFrameStrata("MEDIUM")
     catcher:SetFrameLevel(1)
@@ -477,8 +484,10 @@ function addon:CreateUI()
         local data = cvars[type]
         if data then
             local slider, checkbox = addon:CreateSliderControl(dropdown, type, data, startY)
-            checkbox:SetChecked(GetCVarBool(data.toggle))
-            slider:SetValue(GetCVarNumber(data.volume))
+            if slider and checkbox then
+                checkbox:SetChecked(GetCVarBool(data.toggle))
+                slider:SetValue(GetCVarNumber(data.volume))
+            end
             startY = startY - 60
         end
     end
@@ -504,7 +513,7 @@ function addon:CreateSliderControl(parent, labelText, cvarData, yOffset)
     local cb = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
     cb:SetSize(28, 28)
 
-    -- 3. Slider 
+    -- 3. Slider
     local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate")
     slider:SetPoint("TOP", label, "BOTTOM", 0, -8)
     slider:SetWidth(150)
@@ -526,13 +535,13 @@ function addon:CreateSliderControl(parent, labelText, cvarData, yOffset)
 
     -- 5. "Low" and "High" text
     local lowText, highText
-    for _, child in ipairs({ slider:GetChildren() }) do
-        if child:GetObjectType() == "FontString" then
-            local text = child:GetText()
+    for _, region in ipairs({ slider:GetRegions() }) do
+        if region and region.IsObjectType and region:IsObjectType("FontString") then
+            local text = region["GetText"](region)
             if text == "Low" then
-                lowText = child
+                lowText = region
             elseif text == "High" then
-                highText = child
+                highText = region
             end
         end
     end
@@ -588,7 +597,7 @@ end
 
 function addon:ToggleDropdown()
     if not frame.dropdown then return end
-    
+
     if frame.dropdown:IsShown() then
         frame.dropdown:Hide()
         AscensionSoundDB.isExpanded = false
@@ -606,13 +615,13 @@ end
 function addon:PositionDropdown()
     if not frame.dropdown then return end
     local dropdown = frame.dropdown
-    
+
     local left, bottom, width, height = frame:GetRect()
     local screenHeight = UIParent:GetHeight()
     local dropdownHeight = dropdown:GetHeight()
-    
+
     local spaceBelow = bottom - 10
-    
+
     if spaceBelow >= dropdownHeight then
         dropdown:ClearAllPoints()
         dropdown:SetPoint("TOP", frame, "BOTTOM", 0, -5)
@@ -630,6 +639,11 @@ frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("CVAR_UPDATE")
 frame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
+        -- Check if module is enabled in the Core hub
+        if addon.IsModuleEnabled and not addon:IsModuleEnabled("AscensionSound") then
+            return
+        end
+
         if not AscensionSoundDB then
             AscensionSoundDB = defaults
         else
@@ -644,7 +658,6 @@ frame:SetScript("OnEvent", function(self, event, ...)
             addon:ToggleDropdown()
         end
         self:UnregisterEvent("PLAYER_LOGIN")
-
     elseif event == "CVAR_UPDATE" then
         local cvarName, value = ...
         if not cvarName or not value then return end
