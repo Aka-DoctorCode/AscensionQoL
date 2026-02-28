@@ -1,6 +1,6 @@
 ## Interface: 120001
 ## Title: Ascension QoL
-## Notes: The central hub for all Ascension add ons. Also has QoL features that let you have faster access to some in game options.
+## Notes: The central hub for all Ascension add ons. Also contains QoL features that let you have faster access to some in game options.
 ## Author: AkaDoctorCode
 ## Version: @project-version@
 ## SavedVariables: AscensionSoundDB, AscensionQoLDB
@@ -8,6 +8,7 @@
 ## X-Curse-Project-ID: 1419816
 # X-Wago-ID:
 
+# Libraries
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 Libs\AceAddon-3.0\AceAddon-3.0.xml
@@ -24,5 +25,8 @@ Libs\LibSharedMedia-3.0\lib.xml
 Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
 Libs\AceTimer-3.0\AceTimer-3.0.xml
 
-Core.lua
+# Core
+AscensionQoL.lua
+
+# Modules
 AscensionSound\AscensionSound.lua

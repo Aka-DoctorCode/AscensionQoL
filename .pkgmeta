@@ -4,6 +4,7 @@ enable-nolib-creation: no
 ignore:
     - __MACOSX
     - pkgmeta.yaml
+    - cambios.txt
 externals:
   Libs/LibStub:
     url: https://repos.wowace.com/wow/libstub/trunk

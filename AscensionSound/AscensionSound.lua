@@ -12,11 +12,12 @@
 -------------------------------------------------------------------------------
 
 --  INIT & CONSTANTS
-local addonName, addon = ...
+local addonName, private = ...
+local addon = private
 local frame = CreateFrame("Frame", "AscensionSoundMainFrame", UIParent, "BackdropTemplate")
 
 ---@diagnostic disable-next-line: undefined-global
-local AscensionSoundDB = AscensionSoundDB
+AscensionSoundDB = AscensionSoundDB or {}
 
 --------------------------------------------------------------------------------
 -- COLOR SCHEME
@@ -645,12 +646,12 @@ frame:SetScript("OnEvent", function(self, event, ...)
         end
 
         if not AscensionSoundDB then
-            AscensionSoundDB = defaults
-        else
-            for k, v in pairs(defaults) do
-                if AscensionSoundDB[k] == nil then
-                    AscensionSoundDB[k] = v
-                end
+            AscensionSoundDB = {}
+        end
+
+        for k, v in pairs(defaults) do
+            if AscensionSoundDB[k] == nil then
+                AscensionSoundDB[k] = v
             end
         end
         addon:CreateUI()
