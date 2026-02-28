@@ -1,12 +1,12 @@
 <h1>V06</h1>
 <ul>
+    <li>This add on is now going to content the libraries for other Ascension add ons</li>
     <li>Update to Packager to Bigwigs Packager</li>
     <li>Updated .toc file</li>
     <li>Updated .pkgmeta file</li>
-    <li>This add on is now going to content the libraries for other Ascension add ons</li>
-    <li>All Libraries for the Ascension add ons will be in the Lib folder</li>
     <li>Nil Checks resolve for AscensionSound</li>
     <li>Udefiend Global resolve for AscensionSound</li>
     <li>AscensionSound DB placement in the code was corrected</li>
     <li>API calls were updated to the correct API calls</li>
+    <li>A UI was added to the add on to control which modules are active</li>
 </ul>
