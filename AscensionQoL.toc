@@ -1,7 +1,7 @@
 ## Interface: 120001
 ## Title: Ascension QoL
 ## Notes: The central hub for all Ascension add ons. Also contains QoL features that let you have faster access to some in game options.
-## Author: AkaDoctorCode
+## Author: Aka-DoctorCode
 ## Version: @project-version@
 ## SavedVariables: AscensionSoundDB, AscensionQoLDB
 ## IconTexture: Interface\AddOns\AscensionQoL\Media\AkaDoctorCode.png
