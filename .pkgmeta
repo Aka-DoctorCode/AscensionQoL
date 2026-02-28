@@ -1,13 +1,18 @@
 package-as: AscensionQoL
 license-output: LICENSE
 enable-nolib-creation: no
-
+ignore:
+    - __MACOSX
+    - pkgmeta.yaml
 externals:
   Libs/LibStub:
     url: https://repos.wowace.com/wow/libstub/trunk
     tag: latest
   Libs/CallbackHandler-1.0:
     url: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+    tag: latest
+  Libs/LibSharedMedia-3.0: 
+    url: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk
     tag: latest
   Libs/AceAddon-3.0:
     url: https://repos.wowace.com/wow/ace3/trunk/AceAddon-3.0
@@ -39,20 +44,12 @@ externals:
   Libs/AceTimer-3.0:
     url: https://repos.wowace.com/wow/ace3/trunk/AceTimer-3.0
     tag: latest
-  Libs/LibSharedMedia-3.0: 
-    url: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk/libsharedmedia-3.0
-    tag: latest
   Libs/AceGUI-3.0-SharedMediaWidgets: 
     url: https://repos.wowace.com/wow/ace-gui-3-0-shared-media-widgets/trunk
     tag: latest
   Libs/LibDualSpec-1.0: 
     url: https://repos.wowace.com/wow/libdualspec-1-0
     tag: latest
-
-
-ignore:
-    - __MACOSX
-    - pkgmeta.yaml
 
 manual-changelog: 
     filename: CHANGELOG.txt
