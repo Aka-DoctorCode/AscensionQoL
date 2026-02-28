@@ -1,9 +1,0 @@
-Mostrar el volumen maestro actual en la barra principal: Añadir un texto (ej. “75%”) entre los botones `-` y `+` o sobre ellos, actualizándolo cada vez que se modifique el volumen maestro.
-Añadir soporte de localización (i18n): Crear una tabla `L` con strings traducibles (ej. “Master Mute”, nombres de canales) y cargar el idioma según el cliente del jugador.
-Envolver todas las llamadas a `C_CVar` en `pcall`: Proteger el addon ante posibles fallos de API o CVars inexistentes, mostrando un mensaje de error solo si es necesario.
-
-- FPS Meter
-- Agregar un slider para controlar los FPS
-- Agregar un controlador de perfil de edicion
-
-Changelog:
