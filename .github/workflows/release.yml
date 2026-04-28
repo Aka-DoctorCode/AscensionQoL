@@ -6,7 +6,7 @@ permissions:
 on:
   push:
     tags:
-      - '*'
+      - 'V[0-9]*'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -19,20 +19,40 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
+          token: ${{ secrets.PAT_TOKEN }}
+      
+      - name: Create Automatic VN+1 Tag
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git fetch --tags
+          
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "V[0-9]*" 2>/dev/null || echo "V0")
+          VERSION_NUM=${LATEST_TAG#V}
+          NEXT_NUM=$((VERSION_NUM + 1))
+          NEW_TAG="V$NEXT_NUM"
+          
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
+      
       - name: packageAndDeploy
+        if: startsWith(github.ref, 'refs/tags/')
         uses: BigWigsMods/packager@v2
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: triggerAscensionSuitUpdate
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          gh api repos/Aka-DoctorCode/AscensionSuit/dispatches \
-            --method POST \
-            -f event_type="update-suite" \
-            -F client_payload[trigger]="AscensionQoL" \
-            -F client_payload[version]="${{ github.ref_name }}"
+      # - name: triggerAscensionSuitUpdate
+      #   env:
+      #     GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+      #   run: |
+      #     gh api repos/Aka-DoctorCode/AscensionSuit/dispatches \
+      #       --method POST \
+      #       -f event_type="update-suite" \
+      #       -F client_payload[trigger]="AscensionQoL" \
+      #       -F client_payload[version]="${{ github.ref_name }}"
