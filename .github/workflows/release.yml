@@ -33,4 +33,6 @@ jobs:
         run: |
           gh api repos/Aka-DoctorCode/AscensionSuit/dispatches \
             --method POST \
-            --raw-field event_type=update-suite
+            -f event_type="update-suite" \
+            -F client_payload[trigger]="AscensionQoL" \
+            -F client_payload[version]="${{ github.ref_name }}"
