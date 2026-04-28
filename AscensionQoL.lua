@@ -2,7 +2,7 @@
 -- Project: AscensionQoL
 -- Author: Aka-DoctorCode
 -- File: AscensionQoL.lua
--- Version: 02
+-- Version: @project-version@
 -------------------------------------------------------------------------------
 -- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --
@@ -10,180 +10,222 @@
 -- No part of this file may be copied, modified, redistributed, or used in
 -- derivative works without express written permission.
 -------------------------------------------------------------------------------
-
 local addonName, private = ...
+
+-- Get Factory UI library
+local UIFactory = LibStub("AscensionSuit-UI")
+if not UIFactory then
+    error("AscensionQoL requires AscensionSuit-UI library (Factory.lua)")
+end
 
 -- Global variables for UI components
 local configFrame = nil
-
-local COLORS = {
-    primary           = { 0.498, 0.075, 0.925, 1.0 },  -- #7f13ec
-    gold              = { 1.000, 0.800, 0.200, 1.0 },  -- #ffcc33
-    background_dark   = { 0.020, 0.020, 0.031, 0.95 }, -- #050508
-    surface_dark      = { 0.047, 0.039, 0.082, 1.0 },  -- #0c0a15
-    surface_highlight = { 0.165, 0.141, 0.239, 1.0 },  -- #2a243d
-    black_detail      = { 0.0, 0.0, 0.0, 1.0 },        -- #000000
-    white_detail      = { 1, 1, 1, 1 },                -- #ffffff
-    text_light        = { 0.886, 0.910, 0.941, 1.0 },  -- #e2e8f0
-    text_dim          = { 0.580, 0.640, 0.720, 1.0 },  -- #9ca3af
-}
-
-local FILES = {
-    bgfile = "Interface\\ChatFrame\\ChatFrameBackground",
-    edgefile = "Interface\\Tooltips\\UI-Tooltip-Border",
-}
+local optionsMenu = nil
 
 -- Default DB Structure
 local defaults = {
-    modules = {
-        ["AscensionSound"] = true,
-    },
+    profile = {
+        general = {
+            scale = 1.0,
+        },
+        modules = {
+            ["AscensionSound"] = true,
+            ["AscensionFPS"] = true,
+        },
+        modulesData = {
+            AscensionSound = {
+                scale = 1.0,
+                locked = false,
+                isExpanded = false,
+            },
+            AscensionFPS = {
+                general = {
+                    enabled = true,
+                    updateInterval = 0.5,
+                    customText = "FPS: ",
+                    customTextBefore = true,
+                    useCustomText = false,
+                },
+                display = {
+                    scale = 1.0,
+                    locked = false,
+                    width = 80,
+                    height = 40,
+                    bgVisible = true,
+                    bgColor = { r = 0.02, g = 0.02, b = 0.031, a = 0.85 },
+                },
+                text = {
+                    useClassColor = true,
+                    color = { r = 1, g = 0.8, b = 0.2, a = 1},
+                    size = 16,
+                    font = "Friz Quadrata TT",
+                    style = "OUTLINE",
+                }
+            }
+        }
+    }
 }
 
 -------------------------------------------------------------------------------
 -- DB Management
 -------------------------------------------------------------------------------
-local function InitializeDB()
-    if not AscensionQoLDB then
-        AscensionQoLDB = {}
-    end
-    -- Shallow merge defaults
-    for k, v in pairs(defaults) do
-        if AscensionQoLDB[k] == nil then
-            AscensionQoLDB[k] = v
-        elseif type(v) == "table" and type(AscensionQoLDB[k]) == "table" then
-            for subK, subV in pairs(v) do
-                if AscensionQoLDB[k][subK] == nil then
-                    AscensionQoLDB[k][subK] = subV
-                end
-            end
-        end
-    end
+local function initializeDB()
+    private.db = LibStub("AceDB-3.0"):New("AscensionQoLDB", defaults, "Default")
 end
 
--------------------------------------------------------------------------------
--- UI Helper Functions
--------------------------------------------------------------------------------
-local function CreateHeader(parent, text, yOffset)
-    local header = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-    header:SetPoint("TOPLEFT", 15, yOffset)
-    header:SetText(text)
-    header:SetTextColor(unpack(COLORS.gold))
-
-    local divider = parent:CreateTexture(nil, "ARTWORK")
-    divider:SetHeight(1)
-    divider:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
-    divider:SetPoint("RIGHT", parent, "RIGHT", -5, 0)
-    divider:SetColorTexture(unpack(COLORS.surface_highlight))
-
-    return header, yOffset - 35
-end
-
-local function CreateCheckbox(parent, text, getter, setter, yOffset)
-    local cb = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
-    cb:SetPoint("TOPLEFT", 15, yOffset)
-    cb:SetSize(28, 28)
-
-    cb.text = cb:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    cb.text:SetPoint("LEFT", cb, "RIGHT", 5, 0)
-    cb.text:SetText(text)
-    cb.text:SetTextColor(unpack(COLORS.text_light))
-
-    cb:SetChecked(getter())
-    cb:SetScript("OnClick", function(self)
-        setter(self:GetChecked())
-    end)
-
-    return cb, yOffset - 40
-end
-
--------------------------------------------------------------------------------
--- Main Frame Creation
--------------------------------------------------------------------------------
-local function ShowConfigFrame()
+local function showConfigFrame()
     if configFrame then
         configFrame:Show()
         return
     end
 
+    local ctx = UIFactory:CreateContext()
+    local styles = ctx.styles
+    local colors = styles.colors
+    local profile = private.db.profile
+    local pos = private.positions.configFrame
+
     configFrame = CreateFrame("Frame", "AscensionQoLConfigFrame", UIParent, "BackdropTemplate")
-    configFrame:SetSize(400, 300)
-    configFrame:SetPoint("CENTER")
+    configFrame:SetSize(450, 400)
+    configFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+    configFrame:SetScale(profile.general.scale)
     configFrame:SetMovable(true)
     configFrame:EnableMouse(true)
     configFrame:RegisterForDrag("LeftButton")
     configFrame:SetFrameStrata("HIGH")
 
     configFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-    configFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+    configFrame:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        C_Timer.After(0, function()
+            local point, _, relativePoint, x, y = self:GetPoint()
+            local pos = private.positions.configFrame
+            if pos and point then
+                pos.point = point
+                pos.relativePoint = relativePoint
+                pos.x = x
+                pos.y = y
+            end
+        end)
+    end)
 
     configFrame:SetBackdrop({
-        bgFile = FILES.bgfile,
-        edgeFile = FILES.edgefile,
+        bgFile = styles.files.bgFile,
+        edgeFile = styles.files.edgeFile,
         edgeSize = 16,
         insets = { left = 4, right = 4, top = 4, bottom = 4 }
     })
-    configFrame:SetBackdropColor(unpack(COLORS.background_dark))
-    configFrame:SetBackdropBorderColor(unpack(COLORS.surface_highlight))
+    configFrame:SetBackdropColor(unpack(colors.backgroundDark))
+    configFrame:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
 
     -- Header Title
-    local title = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-    title:SetPoint("TOPLEFT", 15, -15)
+    local title = configFrame:CreateFontString(nil, "OVERLAY", styles.fonts.header)
+    title:SetPoint("TOPLEFT", 16, -16)
     title:SetText("Ascension QoL")
-    title:SetTextColor(unpack(COLORS.gold))
+    title:SetTextColor(unpack(colors.gold))
 
-    -- Close Button
-    local closeBtn = CreateFrame("Button", nil, configFrame, "UIPanelCloseButton")
-    closeBtn:SetPoint("TOPRIGHT", 0, 0)
-    closeBtn:SetScript("OnClick", function() configFrame:Hide() end)
+    -- Close Button (Factory style)
+    local closeBtn = ctx:createCloseButton(configFrame, function() configFrame:Hide() end)
+    closeBtn:SetPoint("TOPRIGHT", -10, -10)
 
-    -- Content 영역
-    local curY = -50
-    local _, curY = CreateHeader(configFrame, "Modules", curY)
+    -- Content Frame (No Scroll)
+    local content = CreateFrame("Frame", nil, configFrame)
+    content:SetPoint("TOPLEFT", 10, -50)
+    content:SetPoint("BOTTOMRIGHT", -10, 60)
 
-    _, curY = CreateCheckbox(configFrame, "Enable Ascension Sound",
-        function() return AscensionQoLDB.modules["AscensionSound"] end,
+    -- Layout Model for automatic positioning
+    local layout = ctx.layoutModel:reset(content, -10)
+
+    layout:header(nil, "Modules")
+
+    layout:checkbox(nil, "Enable Ascension Sound",
+        "Control master volume and channels with a compact UI.",
+        function() return profile.modules["AscensionSound"] end,
         function(v)
-            AscensionQoLDB.modules["AscensionSound"] = v
+            profile.modules["AscensionSound"] = v
             print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionSound|r " ..
                 (v and "enabled" or "disabled") .. " (Reload UI required).")
-        end,
-        curY)
+        end)
+
+    layout:checkbox(nil, "Enable Ascension FPS",
+        "Monitor your framerate with a customizable display.",
+        function() return profile.modules["AscensionFPS"] end,
+        function(v)
+            profile.modules["AscensionFPS"] = v
+            print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionFPS|r " ..
+                (v and "enabled" or "disabled") .. " (Reload UI required).")
+        end)
+
+    -- Reload UI Button
+    layout:button(nil, "Reload UI", "Apply changes by reloading the interface.", 140, 28, 140, function()
+        ReloadUI()
+    end)
 
     -- Help text at bottom
-    local help = configFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    local help = configFrame:CreateFontString(nil, "OVERLAY", styles.fonts.desc)
     help:SetPoint("BOTTOM", 0, 15)
     help:SetText("Changes to modules require /reload to take effect.")
-    help:SetTextColor(unpack(COLORS.text_dim))
+    help:SetTextColor(unpack(colors.gold))
 
     configFrame:Show()
 end
 
+-- Export global showConfig for modules
+private.showConfigFrame = showConfigFrame
+
 -------------------------------------------------------------------------------
 -- Module Interface (for AscensionSound and others)
 -------------------------------------------------------------------------------
-function private:IsModuleEnabled(moduleName)
-    if not AscensionQoLDB or not AscensionQoLDB.modules then return true end
-    return AscensionQoLDB.modules[moduleName] ~= false
+function private:isModuleEnabled(moduleName)
+    if not private.db or not private.db.profile.modules then return true end
+    return private.db.profile.modules[moduleName] ~= false
 end
+
+
 
 -------------------------------------------------------------------------------
 -- Initialization & Events
 -------------------------------------------------------------------------------
+local function initPositions()
+    if not AscensionQoLPositions then
+        AscensionQoLPositions = {}
+    end
+    local p = AscensionQoLPositions
+    if not p.configFrame then p.configFrame = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 } end
+    if not p.AscensionSound then p.AscensionSound = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 } end
+    if not p.AscensionFPS then p.AscensionFPS = { point = "CENTER", relativePoint = "CENTER", x = 0, y = -200 } end
+    private.positions = AscensionQoLPositions
+end
+
+initializeDB()
+
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
+eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self, event, arg1)
-    if event == "ADDON_LOADED" and arg1 == addonName then
-        InitializeDB()
+    if event == "PLAYER_LOGIN" then
+        -- SavedVariables are guaranteed loaded by PLAYER_LOGIN
+        initPositions()
+    elseif event == "ADDON_LOADED" and arg1 == addonName then
+        if not private.db then initializeDB() end
 
         -- Slash commands
         SLASH_AQOL1 = "/aqol"
         SLASH_AQOL2 = "/ascensionqol"
-        SlashCmdList["AQOL"] = function()
-            ShowConfigFrame()
+        SlashCmdList["AQOL"] = function(cmd)
+            if cmd == "debug" then
+                if not private.db then print("AscensionQoL: DB is nil!"); return end
+                local pos = private.positions
+                print("|cff7f13ecAscensionQoL DB Debug:|r")
+                print("  Config frame: x="..tostring(pos.configFrame.x).." y="..tostring(pos.configFrame.y))
+                print("  AscensionSound: x="..tostring(pos.AscensionSound.x).." y="..tostring(pos.AscensionSound.y))
+                print("  AscensionFPS: x="..tostring(pos.AscensionFPS.x).." y="..tostring(pos.AscensionFPS.y))
+            else
+                showConfigFrame()
+            end
         end
 
-        print("|cff7f13ecAscension QoL|r initialized. Use /aqol for settings.")
         self:UnregisterEvent("ADDON_LOADED")
     end
 end)
+

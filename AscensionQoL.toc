@@ -1,32 +1,18 @@
 ## Interface: 120005
 ## Title: Ascension QoL
-## Notes: The central hub for all Ascension add ons. Also contains QoL features that let you have faster access to some in game options.
+## Notes: Quality of Life features to have easier access to in-game options.
 ## Author: Aka-DoctorCode
+## Category: Utility
 ## Version: @project-version@
-## SavedVariables: AscensionSoundDB, AscensionQoLDB
+## SavedVariables: AscensionQoLDB AscensionQoLPositions
+## RequiredDeps: AscensionSuit
 ## IconTexture: Interface\AddOns\AscensionQoL\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1419816
-# X-Wago-ID:
-
-# Libraries
-Libs\LibStub\LibStub.lua
-Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
-Libs\AceAddon-3.0\AceAddon-3.0.xml
-Libs\AceEvent-3.0\AceEvent-3.0.xml
-Libs\AceDB-3.0\AceDB-3.0.xml
-Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
-Libs\AceConsole-3.0\AceConsole-3.0.xml
-Libs\AceGUI-3.0\AceGUI-3.0.xml
-Libs\AceConfig-3.0\AceConfig-3.0.xml
-Libs\AceLocale-3.0\AceLocale-3.0.xml
-Libs\AceHook-3.0\AceHook-3.0.xml
-Libs\LibDualSpec-1.0\LibDualSpec-1.0.lua
-Libs\LibSharedMedia-3.0\lib.xml
-Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
-Libs\AceTimer-3.0\AceTimer-3.0.xml
+## X-Wago-ID: QKy9JeK7
 
 # Core
 AscensionQoL.lua
 
 # Modules
 AscensionSound\AscensionSound.lua
+AscensionFPS\AscensionFPS.lua

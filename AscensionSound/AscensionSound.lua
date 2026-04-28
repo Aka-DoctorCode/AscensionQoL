@@ -2,7 +2,7 @@
 -- Project: AscensionSound
 -- Author: Aka-DoctorCode
 -- File: AscensionSound.lua
--- Version: 03
+-- Version: @project-version@
 -------------------------------------------------------------------------------
 -- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --
@@ -11,67 +11,31 @@
 -- derivative works without express written permission.
 -------------------------------------------------------------------------------
 
---  INIT & CONSTANTS
 local addonName, private = ...
-local addon = private
-local frame = CreateFrame("Frame", "AscensionSoundMainFrame", UIParent, "BackdropTemplate")
+local MAJOR, MINOR = "AscensionSound", 1
+local AceAddon = LibStub("AceAddon-3.0")
+local AscensionSound = AceAddon:NewAddon(MAJOR, "AceEvent-3.0", "AceConsole-3.0")
 
----@diagnostic disable-next-line: undefined-global
-AscensionSoundDB = AscensionSoundDB or {}
-
---------------------------------------------------------------------------------
--- COLOR SCHEME
--------------------------------------------------------------------------------
-local COLORS = {
-    bg = { 0.08, 0.08, 0.08, 0.85 },
-    window_border = { 0.4, 0.4, 0.4, 1.0 },
-    text_title = { 1.0, 0.8, 0.0, 1.0 },
-    text_normal = { 1.0, 1.0, 1.0, 1.0 },
-    text_dim = { 0.6, 0.6, 0.6, 1.0 },
-    text_highlight = { 1.0, 1.0, 0.0, 1.0 },
-    input_bg = { 0.15, 0.15, 0.15, 0.85 },
-    input_border = { 0.4, 0.4, 0.4, 1.0 },
-    input_focus = { 1.0, 0.8, 0.0, 1.0 },
-    menu_bg = { 0.12, 0.12, 0.12, 0.85 },
-    sidebar_accent = { 0.8, 0.6, 0.2, 1.0 },
-    card_bg = { 0.15, 0.15, 0.15, 0.85 },
-    card_border = { 0.3, 0.3, 0.3, 1.0 },
-    card_hover = { 0.8, 0.6, 0.2, 1.0 },
-}
-
--- Default settings
-local defaults = {
-    point = "CENTER",
-    relativePoint = "CENTER",
-    x = 0,
-    y = 0,
-    scale = 1.0,
-    isExpanded = false,
-    locked = false,
-}
-
--- CVars map
-local cvars = {
-    Master = { volume = "Sound_MasterVolume", toggle = "Sound_EnableAllSound" },
-    Music = { volume = "Sound_MusicVolume", toggle = "Sound_EnableMusic" },
-    SFX = { volume = "Sound_SFXVolume", toggle = "Sound_EnableSFX" },
-    Ambience = { volume = "Sound_AmbienceVolume", toggle = "Sound_EnableAmbience" },
-    Dialog = { volume = "Sound_DialogVolume", toggle = "Sound_EnableDialog" }
-}
-
--- Order of sliders in the dropdown
-local sliderOrder = { "Master", "Music", "SFX", "Ambience", "Dialog" }
-
-
---------------------------------------------------------------------------------
--- UTILITY FUNCTIONS
---------------------------------------------------------------------------------
-local function UpdateCVar(cvar, value)
-    if not cvar then return end
-    pcall(C_CVar.SetCVar, cvar, tostring(value))
+-- Get Factory UI library
+local UIFactory = LibStub("AscensionSuit-UI")
+if not UIFactory then
+    error("AscensionSound requires AscensionSuit-UI library (Factory.lua)")
 end
 
-local function GetCVarNumber(cvar)
+-------------------------------------------------------------------------------
+-- CVar MAPPING
+-------------------------------------------------------------------------------
+local cvars = {
+    Master   = { volume = "Sound_MasterVolume", toggle = "Sound_EnableAllSound" },
+    Music    = { volume = "Sound_MusicVolume",   toggle = "Sound_EnableMusic" },
+    SFX      = { volume = "Sound_SFXVolume",     toggle = "Sound_EnableSFX" },
+    Ambience = { volume = "Sound_AmbienceVolume", toggle = "Sound_EnableAmbience" },
+    Dialog   = { volume = "Sound_DialogVolume",  toggle = "Sound_EnableDialog" }
+}
+local channelOrder = { "Music", "SFX", "Ambience", "Dialog" }
+
+-- Helper CVar functions (safe)
+local function getCVarNumber(cvar)
     if not cvar then return 0 end
     local success, val = pcall(C_CVar.GetCVar, cvar)
     if success and val then
@@ -80,7 +44,7 @@ local function GetCVarNumber(cvar)
     return 0
 end
 
-local function GetCVarBool(cvar)
+local function getCVarBool(cvar)
     if not cvar then return false end
     local success, val = pcall(C_CVar.GetCVar, cvar)
     if success and val then
@@ -89,254 +53,333 @@ local function GetCVarBool(cvar)
     return false
 end
 
-local function GetCVarDefault(cvar)
-    if not cvar then return 0 end
-    local success, val = pcall(C_CVar.GetCVarDefault, cvar)
-    if success and val then
-        return tonumber(val) or 0
-    end
-    return 0
+local function updateCVar(cvar, value)
+    if not cvar then return end
+    pcall(C_CVar.SetCVar, cvar, tostring(value))
 end
 
---------------------------------------------------------------------------------
--- STYLED BUTTON (como en AscensionNotes)
---------------------------------------------------------------------------------
-function addon:CreateStyledButton(parent, text, style)
+-------------------------------------------------------------------------------
+-- TEXTURE BUTTON HELPER (+ / -)
+-------------------------------------------------------------------------------
+local function createTextureButton(parent, symbol, size, onClick, styles)
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    btn:SetSize(size, size)
     btn:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        bgFile   = styles.files.bgFile,
+        edgeFile = styles.files.edgeFile,
         edgeSize = 1,
+        insets   = { left = 1, right = 1, top = 1, bottom = 1 }
     })
+    btn:SetBackdropColor(unpack(styles.colors.surfaceHighlight))
+    btn:SetBackdropBorderColor(unpack(styles.colors.blackDetail))
 
-    if style == "primary" then
-        btn:SetBackdropColor(0.2, 0.5, 0.2, 1)
-        btn:SetBackdropBorderColor(0.4, 0.8, 0.4, 1)
-    elseif style == "danger" then
-        btn:SetBackdropColor(0.5, 0.2, 0.2, 1)
-        btn:SetBackdropBorderColor(0.8, 0.4, 0.4, 1)
-    else
-        btn:SetBackdropColor(unpack(COLORS.card_bg))
-        btn:SetBackdropBorderColor(unpack(COLORS.card_border))
+    local iconTextures = {}
+    local hLine = btn:CreateTexture(nil, "OVERLAY")
+    hLine:SetTexture(styles.textures.bar)
+    hLine:SetSize(12, 2)
+    hLine:SetPoint("CENTER", 0, 0)
+    hLine:SetVertexColor(unpack(styles.colors.textLight))
+    table.insert(iconTextures, hLine)
+
+    if symbol == "+" then
+        local vLine = btn:CreateTexture(nil, "OVERLAY")
+        vLine:SetTexture(styles.textures.bar)
+        vLine:SetSize(2, 12)
+        vLine:SetPoint("CENTER", 0, 0)
+        vLine:SetVertexColor(unpack(styles.colors.textLight))
+        table.insert(iconTextures, vLine)
     end
 
-    btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    btn.text:SetPoint("CENTER")
-    btn.text:SetText(text)
-    btn.text:SetTextColor(unpack(COLORS.text_normal))
+    btn.iconTextures = iconTextures
+
+    local function setIconColor(r, g, b)
+        for _, tex in ipairs(iconTextures) do
+            tex:SetVertexColor(r, g, b, 1)
+        end
+    end
 
     btn:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(unpack(COLORS.card_hover))
-        self.text:SetTextColor(unpack(COLORS.text_highlight))
+        self:SetBackdropColor(unpack(styles.colors.primary))
+        self:SetBackdropBorderColor(unpack(styles.colors.textLight))
+        setIconColor(1, 1, 1)
     end)
+
     btn:SetScript("OnLeave", function(self)
-        if style == "primary" then
-            self:SetBackdropBorderColor(0.4, 0.8, 0.4, 1)
-        elseif style == "danger" then
-            self:SetBackdropBorderColor(0.8, 0.4, 0.4, 1)
-        else
-            self:SetBackdropBorderColor(unpack(COLORS.card_border))
+        self:SetBackdropColor(unpack(styles.colors.surfaceHighlight))
+        self:SetBackdropBorderColor(unpack(styles.colors.blackDetail))
+        self._holding = false
+        setIconColor(unpack(styles.colors.textLight))
+    end)
+
+    btn:SetScript("OnMouseDown", function(self)
+        for _, tex in ipairs(self.iconTextures) do
+            tex:ClearAllPoints()
+            tex:SetPoint("CENTER", 1, -1)
         end
-        self.text:SetTextColor(unpack(COLORS.text_normal))
+        onClick()
+        self._holdId = (self._holdId or 0) + 1
+        local currentHold = self._holdId
+        self._holding = true
+        C_Timer.After(0.4, function()
+            local function doRepeat()
+                if not self:IsVisible() then self._holding = false end
+                if self._holding and self._holdId == currentHold then
+                    onClick()
+                    C_Timer.After(0.08, doRepeat)
+                end
+            end
+            if not self:IsVisible() then self._holding = false end
+            if self._holding and self._holdId == currentHold then
+                doRepeat()
+            end
+        end)
+    end)
+
+    btn:SetScript("OnMouseUp", function(self)
+        for _, tex in ipairs(self.iconTextures) do
+            tex:ClearAllPoints()
+            tex:SetPoint("CENTER", 0, 0)
+        end
+        self._holding = false
     end)
 
     return btn
 end
 
---------------------------------------------------------------------------------
--- CONTEXT MENU
---------------------------------------------------------------------------------
-
-function addon:CreateContextMenu()
-    if self.contextMenu then return end
-
-    local f = CreateFrame("Frame", "AscensionSoundContextMenu", UIParent, "BackdropTemplate")
-    f:SetSize(190, 120)
-    f:SetFrameStrata("DIALOG")
-    f:SetClampedToScreen(true)
-    f:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    f:SetBackdropColor(unpack(COLORS.menu_bg))
-    f:SetBackdropBorderColor(unpack(COLORS.window_border))
-    f:Hide()
-
-    local function CreateMenuBtn(text, parent, relativeTo, colorOverride)
-        local btn = CreateFrame("Button", nil, parent)
-        btn:SetSize(190, 25)
-        if relativeTo then
-            btn:SetPoint("TOP", relativeTo, "BOTTOM", 0, 0)
-        else
-            btn:SetPoint("TOP", 0, 0)
-        end
-        btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        btn.text:SetPoint("LEFT", 10, 0)
-        btn.text:SetText(text)
-        if colorOverride then
-            btn.text:SetTextColor(unpack(colorOverride))
-        else
-            btn.text:SetTextColor(unpack(COLORS.text_normal))
-        end
-        btn:SetScript("OnEnter", function(s)
-            if not colorOverride then
-                s.text:SetTextColor(unpack(COLORS.text_highlight))
-            end
-            s.bg = s.bg or s:CreateTexture(nil, "BACKGROUND")
-            s.bg:SetAllPoints()
-            s.bg:SetColorTexture(1, 1, 1, 0.1)
-        end)
-        btn:SetScript("OnLeave", function(s)
-            if not colorOverride then
-                s.text:SetTextColor(unpack(COLORS.text_normal))
-            end
-            if s.bg then
-                s.bg:Hide()
-                s.bg = nil
-            end
-        end)
-        return btn
+-------------------------------------------------------------------------------
+-- ADDON DEFINITION
+-------------------------------------------------------------------------------
+function AscensionSound:OnInitialize()
+    -- Check if module is enabled by AscensionQoL core
+    if private and private.isModuleEnabled and not private:isModuleEnabled("AscensionSound") then
+        self:Disable()
+        return
     end
 
-    -- 1. Lock / Unlock
-    local lockBtn = CreateMenuBtn("", f, nil)
-    lockBtn:SetScript("OnClick", function()
-        AscensionSoundDB.locked = not AscensionSoundDB.locked
-        frame:SetMovable(not AscensionSoundDB.locked)
-        f:Hide()
-    end)
+    self.db = private.db
+    self.profile = self.db.profile.modulesData.AscensionSound
 
-    -- 2. Reset position
-    local resetBtn = CreateMenuBtn("Reset position", f, lockBtn)
-    resetBtn:SetScript("OnClick", function()
-        AscensionSoundDB.point = defaults.point
-        AscensionSoundDB.relativePoint = defaults.relativePoint
-        AscensionSoundDB.x = defaults.x
-        AscensionSoundDB.y = defaults.y
-        frame:ClearAllPoints()
-        frame:SetPoint(defaults.point, UIParent, defaults.relativePoint, defaults.x, defaults.y)
-        f:Hide()
-    end)
-
-    -- 3. Separador visual y control de escala
-    local scaleLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    scaleLabel:SetPoint("TOP", resetBtn, "BOTTOM", 0, -5)
-    scaleLabel:SetText("Scale")
-    scaleLabel:SetTextColor(unpack(COLORS.text_title))
-
-    -- 4. Button‑based scale controls
-    local scaleRow = CreateFrame("Frame", nil, f)
-    scaleRow:SetSize(160, 30)
-    scaleRow:SetPoint("TOP", scaleLabel, "BOTTOM", 0, -5)
-
-    -- Minus button
-    local minusBtn = CreateFrame("Button", nil, scaleRow, "BackdropTemplate")
-    minusBtn:SetSize(30, 30)
-    minusBtn:SetPoint("LEFT", 0, 0)
-    minusBtn:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    minusBtn:SetBackdropColor(unpack(COLORS.card_bg))
-    minusBtn:SetBackdropBorderColor(unpack(COLORS.card_border))
-    minusBtn.text = minusBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    minusBtn.text:SetPoint("CENTER")
-    minusBtn.text:SetText("-")
-    minusBtn.text:SetTextColor(unpack(COLORS.text_normal))
-    minusBtn:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(unpack(COLORS.card_hover))
-        self.text:SetTextColor(unpack(COLORS.text_highlight))
-    end)
-    minusBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(unpack(COLORS.card_border))
-        self.text:SetTextColor(unpack(COLORS.text_normal))
-    end)
-
-    -- Scale value display
-    local scaleValue = scaleRow:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    scaleValue:SetPoint("CENTER")
-    scaleValue:SetTextColor(unpack(COLORS.text_normal))
-    scaleValue:SetText(string.format("%.1fx", AscensionSoundDB.scale or 1.0))
-
-    -- Plus button
-    local plusBtn = CreateFrame("Button", nil, scaleRow, "BackdropTemplate")
-    plusBtn:SetSize(30, 30)
-    plusBtn:SetPoint("RIGHT", 0, 0)
-    plusBtn:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    plusBtn:SetBackdropColor(unpack(COLORS.card_bg))
-    plusBtn:SetBackdropBorderColor(unpack(COLORS.card_border))
-    plusBtn.text = plusBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    plusBtn.text:SetPoint("CENTER")
-    plusBtn.text:SetText("+")
-    plusBtn.text:SetTextColor(unpack(COLORS.text_normal))
-    plusBtn:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(unpack(COLORS.card_hover))
-        self.text:SetTextColor(unpack(COLORS.text_highlight))
-    end)
-    plusBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(unpack(COLORS.card_border))
-        self.text:SetTextColor(unpack(COLORS.text_normal))
-    end)
-
-    -- Update scale function
-    local function SetScale(newScale)
-        newScale = math.max(0.5, math.min(2.0, newScale))
-        newScale = math.floor(newScale * 10 + 0.5) / 10
-        AscensionSoundDB.scale = newScale
-        frame:SetScale(newScale)
-        scaleValue:SetText(string.format("%.1fx", newScale))
-    end
-
-    minusBtn:SetScript("OnClick", function()
-        SetScale((AscensionSoundDB.scale or 1.0) - 0.1)
-    end)
-
-    plusBtn:SetScript("OnClick", function()
-        SetScale((AscensionSoundDB.scale or 1.0) + 0.1)
-    end)
-
-    -- 5. Update lock button text
-    local function UpdateMenuTexts()
-        lockBtn.text:SetText(AscensionSoundDB.locked and "Unlock" or "Lock")
-    end
-
-    -- 6. Closer (full‑screen click catcher) – now parented to UIParent
-    local closer = CreateFrame("Button", nil, UIParent)
-    closer:SetFrameStrata("DIALOG")
-    closer:SetFrameLevel(f:GetFrameLevel() - 1) -- below the menu
-    closer:SetAllPoints(UIParent)
-    closer:SetScript("OnClick", function() f:Hide() end)
-    closer:Hide()
-
-    f:SetScript("OnShow", function()
-        UpdateMenuTexts()
-        scaleValue:SetText(string.format("%.1fx", AscensionSoundDB.scale or 1.0))
-        closer:Show()
-    end)
-    f:SetScript("OnHide", function()
-        closer:Hide()
-    end)
-
-    self.contextMenu = f
+    self:RegisterEvent("PLAYER_LOGIN")
+    self:RegisterEvent("CVAR_UPDATE")
 end
 
-function addon:CreateDropdownCatcher()
-    if self.dropdownCatcher then return end
+function AscensionSound:PLAYER_LOGIN()
+    self:createUI()
+    self:UnregisterEvent("PLAYER_LOGIN")
+end
 
+function AscensionSound:CVAR_UPDATE(event, cvarName, value)
+    if not cvarName or not value then return end
+    self:syncUIWithCVar(cvarName, value)
+end
+
+-------------------------------------------------------------------------------
+-- UI CREATION (using Factory styles, center anchor)
+-------------------------------------------------------------------------------
+function AscensionSound:createUI()
+    self.pos = private.positions.AscensionSound
+    self.ctx = UIFactory:CreateContext()
+    local styles = self.ctx.styles
+
+    -- Main frame
+    local frame = CreateFrame("Frame", "AscensionSoundMainFrame", UIParent, "BackdropTemplate")
+    frame:SetSize(190, 40)
+    -- Anchor to saved point
+    frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
+    frame:SetMovable(not self.profile.locked)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetClampedToScreen(true)
+    frame:SetScale(self.profile.scale)
+
+    -- Backdrop
+    frame:SetBackdrop({
+        bgFile = styles.files.bgFile,
+        edgeFile = styles.files.edgeFile,
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    frame:SetBackdropColor(unpack(styles.colors.backgroundDark))
+    frame:SetBackdropBorderColor(unpack(styles.colors.surfaceHighlight))
+    self.frame = frame
+
+    -- Drag handling
+    frame:SetScript("OnDragStart", function(self)
+        if not AscensionSound.profile.locked then self:StartMoving() end
+    end)
+    frame:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        C_Timer.After(0, function()
+            local point, _, relativePoint, x, y = self:GetPoint()
+            if AscensionSound.pos and point then
+                AscensionSound.pos.point = point
+                AscensionSound.pos.relativePoint = relativePoint
+                AscensionSound.pos.x = x
+                AscensionSound.pos.y = y
+                AscensionSound:updateSliders()
+            end
+        end)
+    end)
+
+    -- Right-click context menu
+    frame:SetScript("OnMouseDown", function(self, button)
+        if button == "RightButton" then
+            AscensionSound:showContextMenu()
+        end
+    end)
+
+    -- Positioning constants
+    local topY = -8
+    local masterMuteX = 5
+    local masterMuteWidth = 32
+    local btnWidth = 26
+    local btnSpacing = 5
+    local expandBtnWidth = 45
+
+    -- Master Mute (checkbox)
+    local masterMute = self.ctx:createCheckbox({
+        parent = frame,
+        text = "",
+        getter = function() return getCVarBool(cvars.Master.toggle) end,
+        setter = function(val) updateCVar(cvars.Master.toggle, val and "1" or "0") end,
+        yOffset = -4,
+        xOffset = 5,
+    })
+    masterMute:SetSize(masterMuteWidth, masterMuteWidth)
+    masterMute.tooltip = "Master Mute"
+    masterMute:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Master Mute", 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    masterMute:SetScript("OnLeave", GameTooltip_Hide)
+    self.masterMute = masterMute
+
+    -- Decrease volume button (texture)
+    local decX = masterMuteX + masterMuteWidth + btnSpacing
+    local decBtn = createTextureButton(frame, "-", btnWidth, function()
+        local current = getCVarNumber(cvars.Master.volume)
+        updateCVar(cvars.Master.volume, math.max(0, current - 0.1))
+    end, styles)
+    decBtn:SetPoint("TOPLEFT", frame, "TOPLEFT", decX, topY)
+
+    -- Increase volume button (texture)
+    local incX = decX + btnWidth + btnSpacing
+    local incBtn = createTextureButton(frame, "+", btnWidth, function()
+        local current = getCVarNumber(cvars.Master.volume)
+        updateCVar(cvars.Master.volume, math.min(1, current + 0.1))
+    end, styles)
+    incBtn:SetPoint("TOPLEFT", frame, "TOPLEFT", incX, topY)
+
+    -- Expand / Dropdown button (text button, could be changed later)
+    local expandX = frame:GetWidth() - expandBtnWidth - 5
+    local expandBtn = self.ctx:createButton({
+    parent = frame,
+    text = "Vol",
+    width = expandBtnWidth,
+    height = btnWidth,
+    xOffset = expandX,
+    yOffset = topY,
+    onClick = function() AscensionSound:toggleDropdown() end,
+    })
+    
+    expandBtn.text:SetFontObject("GameFontNormalLarge")
+
+    self:createDropdownPanel()
+    self:updateMasterMuteState()
+
+    -- Restore expanded state if needed (with slight delay to ensure positioning)
+    if self.profile.isExpanded then
+        C_Timer.After(0.05, function()
+            if not self.dropdown then return end
+            self:toggleDropdown()
+        end)
+    end
+end
+
+function AscensionSound:createDropdownPanel()
+    local dropdown = CreateFrame("Frame", nil, self.frame, "BackdropTemplate")
+    dropdown:SetFrameStrata("MEDIUM")
+    dropdown:SetFrameLevel(10)
+    local numChannels = #channelOrder
+    local rowHeight = 85
+    
+    local padding = 30
+    dropdown:SetSize(250, numChannels * rowHeight + padding)
+    dropdown:SetPoint("TOP", self.frame, "BOTTOM", 0, -5)
+    dropdown:SetBackdrop({
+        bgFile = self.ctx.styles.files.bgFile,
+        edgeFile = self.ctx.styles.files.edgeFile,
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    dropdown:SetBackdropColor(unpack(self.ctx.styles.colors.surfaceDark))
+    dropdown:SetBackdropBorderColor(unpack(self.ctx.styles.colors.surfaceHighlight))
+    dropdown:SetClampedToScreen(true)
+    dropdown:EnableMouse(true)
+    dropdown:Hide()
+    self.dropdown = dropdown
+
+    -- Layout model for easy vertical positioning
+    local layout = self.ctx.layoutModel:reset(dropdown, -15)
+    self.dropdownSliders = {}
+    self.dropdownCheckboxes = {}
+
+    for _, channel in ipairs(channelOrder) do
+        local data = cvars[channel]
+        if data then
+            -- Channel label
+            layout:label(nil, channel, nil, self.ctx.styles.colors.gold)
+
+            -- Checkbox (mute)
+            local cb = self.ctx:createCheckbox({
+                parent = dropdown,
+                text = "",
+                getter = function() return getCVarBool(data.toggle) end,
+                setter = function(val) updateCVar(data.toggle, val and "1" or "0") end,
+                yOffset = layout.y,
+                xOffset = 16,
+            })
+            cb:SetSize(28, 28)
+            cb:ClearAllPoints()
+            cb:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 16, layout.y)
+
+            -- Slider (volume)
+            local slider = self.ctx:createSlider({
+                parent = dropdown,
+                text = "",
+                minVal = 0,
+                maxVal = 100,
+                step = 5,
+                getter = function() return getCVarNumber(data.volume) * 100 end,
+                setter = function(val) updateCVar(data.volume, val / 100) end,
+                width = 150,
+                xOffset = 50,
+                yOffset = layout.y - 10,
+            })
+            slider:ClearAllPoints()
+            slider:SetPoint("LEFT", cb, "RIGHT", 5, 0)
+
+            table.insert(self.dropdownSliders, { slider = slider, cvar = data.volume })
+            table.insert(self.dropdownCheckboxes, { checkbox = cb, cvar = data.toggle })
+
+            layout.y = layout.y - 70
+        end
+    end
+
+    self:createDropdownCatcher()
+end
+
+function AscensionSound:createDropdownCatcher()
+    if self.dropdownCatcher then return end
     local catcher = CreateFrame("Button", nil, UIParent)
-    catcher:SetFrameStrata("MEDIUM")
+    catcher:SetFrameStrata("BACKGROUND")
     catcher:SetFrameLevel(1)
-    catcher:SetAllPoints(UIParent)
+    catcher:SetAllPoints()
     catcher:SetScript("OnClick", function()
-        if frame.dropdown and frame.dropdown:IsShown() then
-            if not frame.dropdown:IsMouseOver() then
-                addon:ToggleDropdown()
+        if self.dropdown and self.dropdown:IsShown() then
+            if not self.dropdown:IsMouseOver() then
+                self:toggleDropdown()
             end
         end
     end)
@@ -344,352 +387,247 @@ function addon:CreateDropdownCatcher()
     self.dropdownCatcher = catcher
 end
 
-function addon:ShowDropdownCatcher()
-    if not self.dropdownCatcher then self:CreateDropdownCatcher() end
-    self.dropdownCatcher:Show()
-end
-
-function addon:ShowContextMenu(anchor)
-    if not self.contextMenu then self:CreateContextMenu() end
-    local menu = self.contextMenu
-    menu:ClearAllPoints()
-    menu:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
-    menu:Show()
-end
-
---------------------------------------------------------------------------------
--- UI CREATION
---------------------------------------------------------------------------------
-function addon:CreateUI()
-    -- Main container
-    frame:SetSize(190, 40)
-    frame:ClearAllPoints()
-    local point = AscensionSoundDB.point or "CENTER"
-    local relativePoint = AscensionSoundDB.relativePoint or "CENTER"
-    local x = AscensionSoundDB.x or 0
-    local y = AscensionSoundDB.y or 0
-    frame:SetPoint(point, UIParent, relativePoint, x, y)
-    frame:SetMovable(not AscensionSoundDB.locked)
-    frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", function(self)
-        if not AscensionSoundDB.locked then self:StartMoving() end
-    end)
-    frame:SetClampedToScreen(true)
-    frame:SetScale(AscensionSoundDB.scale or 1.0)
-    frame:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        local point, _, relativePoint, x, y = self:GetPoint()
-        AscensionSoundDB.point = point
-        AscensionSoundDB.relativePoint = relativePoint
-        AscensionSoundDB.x = x
-        AscensionSoundDB.y = y
-    end)
-
-    -- Background
-    frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    frame:SetBackdropColor(unpack(COLORS.bg))
-    frame:SetBackdropBorderColor(unpack(COLORS.window_border))
-
-    -- Right-click context menu
-    frame:SetScript("OnMouseDown", function(self, button)
-        if button == "RightButton" then
-            addon:ShowContextMenu(self)
-        end
-    end)
-
-    -- Master Mute Button (Toggle)
-    local masterMuteBtn = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
-    masterMuteBtn:SetSize(35, 35)
-    masterMuteBtn:SetPoint("LEFT", frame, "LEFT", 5, 0)
-    masterMuteBtn.tooltip = "Master Mute"
-    masterMuteBtn:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(self.tooltip, 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    masterMuteBtn:SetScript("OnLeave", function(self) GameTooltip:Hide() end)
-    masterMuteBtn:SetScript("OnClick", function(self)
-        local isEnabled = self:GetChecked()
-        UpdateCVar(cvars.Master.toggle, isEnabled and "1" or "0")
-    end)
-
-    -- Sync initial state
-    masterMuteBtn:SetChecked(GetCVarBool(cvars.Master.toggle))
-    frame.masterMuteBtn = masterMuteBtn
-
-    -- Decrease Volume Button (-)
-    local decBtn = self:CreateStyledButton(frame, "-", "normal")
-    decBtn:SetSize(26, 26)
-    decBtn:SetPoint("LEFT", masterMuteBtn, "RIGHT", 5, 0)
-    decBtn:SetScript("OnClick", function()
-        local current = GetCVarNumber(cvars.Master.volume)
-        local newVol = math.max(0, current - 0.1)
-        UpdateCVar(cvars.Master.volume, newVol)
-    end)
-
-    -- Increase Volume Button (+)
-    local incBtn = self:CreateStyledButton(frame, "+", "normal")
-    incBtn:SetSize(26, 26)
-    incBtn:SetPoint("LEFT", decBtn, "RIGHT", 5, 0)
-    incBtn:SetScript("OnClick", function()
-        local current = GetCVarNumber(cvars.Master.volume)
-        local newVol = math.min(1, current + 0.1)
-        UpdateCVar(cvars.Master.volume, newVol)
-    end)
-
-    -- Expand/Dropdown Button
-    local expandBtn = self:CreateStyledButton(frame, "Vol", "normal")
-    expandBtn:SetSize(45, 26)
-    expandBtn:SetPoint("RIGHT", frame, "RIGHT", -5, 0)
-    expandBtn:SetScript("OnClick", function()
-        addon:ToggleDropdown()
-    end)
-
-    --------------------------------------------------------------------------------
-    -- DROPDOWN
-    --------------------------------------------------------------------------------
-    local dropdown = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    dropdown:SetFrameStrata("MEDIUM")
-    dropdown:SetFrameLevel(10)
-    local numChannels = #sliderOrder
-    local rowHeight = 60
-    local padding = 20
-    local dropdownHeight = numChannels * rowHeight + padding
-    dropdown:SetSize(250, dropdownHeight)
-    dropdown:SetPoint("TOP", frame, "BOTTOM", 0, -5)
-    dropdown:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    dropdown:SetBackdropColor(unpack(COLORS.menu_bg))
-    dropdown:SetBackdropBorderColor(unpack(COLORS.window_border))
-    dropdown:SetClampedToScreen(true)
-    dropdown:EnableMouse(true)
-    dropdown:Hide()
-    frame.dropdown = dropdown
-
-    dropdown.sliders = {}
-    dropdown.checkboxes = {}
-
-    -- Create Sliders for each channel
-    local startY = -15
-    for _, type in ipairs(sliderOrder) do
-        local data = cvars[type]
-        if data then
-            local slider, checkbox = addon:CreateSliderControl(dropdown, type, data, startY)
-            if slider and checkbox then
-                checkbox:SetChecked(GetCVarBool(data.toggle))
-                slider:SetValue(GetCVarNumber(data.volume))
-            end
-            startY = startY - 60
-        end
-    end
-end
-
---------------------------------------------------------------------------------
--- CREATION OF CONTROLS BY CHANNEL (Slider + Checkbox + Labels)
---------------------------------------------------------------------------------
-
-function addon:CreateSliderControl(parent, labelText, cvarData, yOffset)
-    if not parent or not cvarData then return end
-
-    parent.sliders = parent.sliders or {}
-    parent.checkboxes = parent.checkboxes or {}
-
-    -- 1. Label
-    local label = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-    label:SetPoint("TOP", parent, "TOP", 0, yOffset)
-    label:SetText(labelText)
-    label:SetTextColor(unpack(COLORS.text_title))
-
-    -- 2. Checkbox
-    local cb = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
-    cb:SetSize(28, 28)
-
-    -- 3. Slider
-    local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate")
-    slider:SetPoint("TOP", label, "BOTTOM", 0, -8)
-    slider:SetWidth(150)
-    slider:SetHeight(17)
-    slider:SetMinMaxValues(0, 1)
-    slider:SetValueStep(0.05)
-    slider:SetObeyStepOnDrag(true)
-    slider:EnableMouse(true)
-    slider:RegisterForDrag("LeftButton")
-
-    -- Checkbox position
-    cb:SetPoint("RIGHT", slider, "LEFT", -5, 0)
-
-    -- 4. Percentage text
-    local valueText = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    valueText:SetPoint("LEFT", slider, "RIGHT", 5, 0)
-    valueText:SetTextColor(unpack(COLORS.text_normal))
-    valueText:SetText("100%")
-
-    -- 5. "Low" and "High" text
-    local lowText, highText
-    for _, region in ipairs({ slider:GetRegions() }) do
-        if region and region.IsObjectType and region:IsObjectType("FontString") then
-            local text = region["GetText"](region)
-            if text == "Low" then
-                lowText = region
-            elseif text == "High" then
-                highText = region
-            end
-        end
-    end
-
-    if lowText then lowText:SetFontObject(GameFontNormalLarge) end
-    if highText then highText:SetFontObject(GameFontNormalLarge) end
-
-    -- Right-click to reset to default
-    slider:SetScript("OnMouseDown", function(self, button)
-        if button == "RightButton" then
-            local defaultValue = GetCVarDefault(cvarData.volume)
-            slider:SetValue(defaultValue)
-            UpdateCVar(cvarData.volume, defaultValue)
-        end
-    end)
-
-    -- Update functions
-    local function UpdateValueText()
-        local val = slider:GetValue()
-        valueText:SetText(string.format("%d%%", val * 100))
-    end
-
-    -- Scripts del checkbox
-    cb:SetScript("OnClick", function(self)
-        local isEnabled = self:GetChecked()
-        UpdateCVar(cvarData.toggle, isEnabled and "1" or "0")
-    end)
-    cb:SetScript("OnShow", function(self)
-        self:SetChecked(GetCVarBool(cvarData.toggle))
-    end)
-
-    -- Scripts del slider
-    slider:SetScript("OnValueChanged", function(self, value)
-        local currentCVar = GetCVarNumber(cvarData.volume)
-        if math.abs(value - currentCVar) > 0.0001 then
-            UpdateCVar(cvarData.volume, value)
-        end
-        UpdateValueText()
-    end)
-    slider:SetScript("OnShow", function(self)
-        self:SetValue(GetCVarNumber(cvarData.volume))
-        UpdateValueText()
-    end)
-
-    UpdateValueText()
-
-    -- Save references for update by CVAR_UPDATE
-    table.insert(parent.sliders, { slider = slider, cvar = cvarData.volume, valueText = valueText })
-    table.insert(parent.checkboxes, { checkbox = cb, cvar = cvarData.toggle })
-
-    return slider, cb
-end
-
-function addon:ToggleDropdown()
-    if not frame.dropdown then return end
-
-    if frame.dropdown:IsShown() then
-        frame.dropdown:Hide()
-        AscensionSoundDB.isExpanded = false
-        if self.dropdownCatcher then
-            self.dropdownCatcher:Hide()
-        end
+function AscensionSound:toggleDropdown()
+    if not self.dropdown then return end
+    if self.dropdown:IsShown() then
+        self.dropdown:Hide()
+        self.profile.isExpanded = false
+        if self.dropdownCatcher then self.dropdownCatcher:Hide() end
     else
-        addon:PositionDropdown()
-        frame.dropdown:Show()
-        AscensionSoundDB.isExpanded = true
-        addon:ShowDropdownCatcher()
+        self:positionDropdown()
+        self.dropdown:Show()
+        self.profile.isExpanded = true
+        if self.dropdownCatcher then self.dropdownCatcher:Show() end
     end
 end
 
-function addon:PositionDropdown()
-    if not frame.dropdown then return end
-    local dropdown = frame.dropdown
-
-    local left, bottom, width, height = frame:GetRect()
-    local screenHeight = UIParent:GetHeight()
-    local dropdownHeight = dropdown:GetHeight()
-
-    local spaceBelow = bottom - 10
+function AscensionSound:positionDropdown()
+    if not self.dropdown or not self.frame then return end
+    -- Get absolute rectangle of the main frame
+    local left, bottom, width, height = self.frame:GetRect()
+    if not bottom then
+        -- Frame not yet laid out, skip positioning
+        return
+    end
+    local dropdownHeight = self.dropdown:GetHeight()
+    local spaceBelow = bottom - 10   -- 10 pixel margin
 
     if spaceBelow >= dropdownHeight then
-        dropdown:ClearAllPoints()
-        dropdown:SetPoint("TOP", frame, "BOTTOM", 0, -5)
+        self.dropdown:ClearAllPoints()
+        self.dropdown:SetPoint("TOP", self.frame, "BOTTOM", 0, -5)
     else
-        dropdown:ClearAllPoints()
-        dropdown:SetPoint("BOTTOM", frame, "TOP", 0, 5)
+        self.dropdown:ClearAllPoints()
+        self.dropdown:SetPoint("BOTTOM", self.frame, "TOP", 0, 5)
     end
 end
 
---------------------------------------------------------------------------------
--- EVENT HANDLING
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- OPTIONS MENU (Second level)
+-------------------------------------------------------------------------------
+function AscensionSound:showOptionsMenu(parentFrame)
+    if self.optionsMenu and self.optionsMenu:IsShown() then
+        self.optionsMenu:Hide()
+        return
+    end
 
-frame:RegisterEvent("PLAYER_LOGIN")
-frame:RegisterEvent("CVAR_UPDATE")
-frame:SetScript("OnEvent", function(self, event, ...)
-    if event == "PLAYER_LOGIN" then
-        -- Check if module is enabled in the Core hub
-        if addon.IsModuleEnabled and not addon:IsModuleEnabled("AscensionSound") then
-            return
-        end
+    -- Open main config frame first
+    if private.showConfigFrame then private.showConfigFrame() end
+    local aqolFrame = _G["AscensionQoLConfigFrame"]
 
-        if not AscensionSoundDB then
-            AscensionSoundDB = {}
-        end
+    local styles = self.ctx.styles
+    local colors = styles.colors
+    local profile = self.profile
 
-        for k, v in pairs(defaults) do
-            if AscensionSoundDB[k] == nil then
-                AscensionSoundDB[k] = v
-            end
-        end
-        addon:CreateUI()
-        if AscensionSoundDB.isExpanded then
-            addon:ToggleDropdown()
-        end
-        self:UnregisterEvent("PLAYER_LOGIN")
-    elseif event == "CVAR_UPDATE" then
-        local cvarName, value = ...
-        if not cvarName or not value then return end
+    if not self.optionsMenu then
+        local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+        menu:SetSize(280, 320)
+        menu:SetFrameStrata("DIALOG")
+        menu:SetBackdrop({
+            bgFile = styles.files.bgFile,
+            edgeFile = styles.files.edgeFile,
+            edgeSize = 16,
+            insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        })
+        menu:SetBackdropColor(unpack(colors.backgroundDark))
+        menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+        self.optionsMenu = menu
 
-        -- Update master button
-        if cvarName == cvars.Master.toggle then
-            if frame.masterMuteBtn then
-                frame.masterMuteBtn:SetChecked(value == "1")
-            end
-        end
+        local layout = self.ctx.layoutModel:reset(menu, -20)
+        layout:header(nil, "Sound Module Options")
 
-        -- Update dropdown if visible
-        if self.dropdown and self.dropdown:IsShown() then
-            if frame.dropdown.sliders then
-                for _, item in ipairs(frame.dropdown.sliders) do
-                    if item.cvar == cvarName then
-                        local numVal = tonumber(value) or 0
-                        item.slider:SetValue(numVal)
-                        if item.valueText then
-                            item.valueText:SetText(string.format("%d%%", numVal * 100))
-                        end
-                    end
+        -- Scale Slider
+        self.scaleSlider = layout:slider(nil, "Scale", 0.5, 2.0, 0.1,
+            function() return self.profile.scale end,
+            function(v)
+                self.profile.scale = v
+                if self.frame then self.frame:SetScale(v) end
+            end)
+
+        -- X Position Slider
+        local screenWidth = math.floor(GetScreenWidth())
+        self.xSlider = layout:slider(nil, "X Position", -screenWidth, screenWidth, 1,
+            function() return self.pos.x end,
+            function(v)
+                self.pos.x = v
+                if self.frame then
+                    self.frame:ClearAllPoints()
+                    self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
                 end
-            end
-            if frame.dropdown.checkboxes then
-                for _, item in ipairs(frame.dropdown.checkboxes) do
-                    if item.cvar == cvarName then
-                        item.checkbox:SetChecked(value == "1")
-                    end
+            end)
+
+        -- Y Position Slider
+        local screenHeight = math.floor(GetScreenHeight())
+        self.ySlider = layout:slider(nil, "Y Position", -screenHeight, screenHeight, 1,
+            function() return self.pos.y end,
+            function(v)
+                self.pos.y = v
+                if self.frame then
+                    self.frame:ClearAllPoints()
+                    self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
                 end
+            end)
+
+        -- Close button
+        local closeBtn = self.ctx:createCloseButton(menu, function() menu:Hide() end)
+        closeBtn:SetPoint("TOPRIGHT", -10, -10)
+
+    end
+
+    self.optionsMenu:ClearAllPoints()
+    if aqolFrame then
+        self.optionsMenu:SetPoint("LEFT", aqolFrame, "RIGHT", 10, 0)
+    else
+        self.optionsMenu:SetPoint("CENTER", UIParent, "CENTER", 250, 0)
+    end
+    self.optionsMenu:Show()
+    self:updateSliders()
+end
+
+function AscensionSound:updateSliders()
+    if not self.optionsMenu or not self.optionsMenu:IsShown() then return end
+    if self.scaleSlider then self.scaleSlider:SetValue(self.profile.scale) end
+    if self.xSlider then self.xSlider:SetValue(self.pos.x) end
+    if self.ySlider then self.ySlider:SetValue(self.pos.y) end
+end
+
+-------------------------------------------------------------------------------
+-- CONTEXT MENU (Right-click)
+-------------------------------------------------------------------------------
+function AscensionSound:showContextMenu()
+    if self.contextMenu and self.contextMenu:IsShown() then
+        self.contextMenu:Hide()
+        return
+    end
+
+    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    menu:SetSize(190, 150)
+    menu:SetFrameStrata("DIALOG")
+    menu:SetClampedToScreen(true)
+    menu:SetScale(self.profile.scale)
+    menu:SetBackdrop({
+        bgFile = self.ctx.styles.files.bgFile,
+        edgeFile = self.ctx.styles.files.edgeFile,
+        edgeSize = 1,
+    })
+    menu:SetBackdropColor(unpack(self.ctx.styles.colors.surfaceDark))
+    menu:SetBackdropBorderColor(unpack(self.ctx.styles.colors.surfaceHighlight))
+    menu:SetPoint("TOP", self.frame, "BOTTOM", 0, -5)
+    menu:Show()
+
+    -- Lock/Unlock
+    self.ctx:createButton({
+        parent = menu,
+        text = self.profile.locked and "Unlock" or "Lock",
+        width = 170, height = 28,
+        xOffset = 10, yOffset = -10,
+        onClick = function()
+            self.profile.locked = not self.profile.locked
+            self.frame:SetMovable(not self.profile.locked)
+            menu:Hide()
+        end,
+    })
+
+    -- Options Button (Opens secondary menu)
+    self.ctx:createButton({
+        parent = menu,
+        text = "Options",
+        width = 170, height = 28,
+        xOffset = 10, yOffset = -50,
+        onClick = function(btn)
+            menu:Hide()
+            self:showOptionsMenu()
+        end,
+    })
+
+    -- Reset position
+    self.ctx:createButton({
+        parent = menu,
+        text = "Reset position",
+        width = 170, height = 28,
+        xOffset = 10, yOffset = -90,
+        onClick = function()
+            self.pos.point = "CENTER"
+            self.pos.relativePoint = "CENTER"
+            self.pos.x = 0
+            self.pos.y = 0
+            self.frame:ClearAllPoints()
+            self.frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+            self:updateSliders()
+            menu:Hide()
+        end,
+    })
+
+    -- Full-screen click catcher to close menu
+    local closer = CreateFrame("Button", nil, UIParent)
+    closer:SetAllPoints()
+    closer:SetFrameStrata("BACKGROUND")
+    closer:SetFrameLevel(1)
+    closer:SetScript("OnClick", function()
+        menu:Hide()
+    end)
+    closer:Show()
+
+    menu:SetScript("OnHide", function()
+        closer:Hide()
+        self.contextMenu = nil
+    end)
+    self.contextMenu = menu
+end
+
+-------------------------------------------------------------------------------
+-- SYNC METHODS
+-------------------------------------------------------------------------------
+function AscensionSound:updateMasterMuteState()
+    if self.masterMute then
+        self.masterMute:SetChecked(getCVarBool(cvars.Master.toggle))
+    end
+end
+
+function AscensionSound:syncUIWithCVar(cvarName, value)
+    -- Master mute button
+    if cvarName == cvars.Master.toggle then
+        if self.masterMute then
+            self.masterMute:SetChecked(value == "1")
+        end
+    end
+
+    -- Dropdown controls if visible
+    if self.dropdown and self.dropdown:IsShown() then
+        for _, item in ipairs(self.dropdownSliders or {}) do
+            if item.cvar == cvarName then
+                local numVal = (tonumber(value) or 0) * 100
+                item.slider:SetValue(numVal)
+            end
+        end
+        for _, item in ipairs(self.dropdownCheckboxes or {}) do
+            if item.cvar == cvarName then
+                item.checkbox:SetChecked(value == "1")
             end
         end
     end
-end)
+end
+
+function AscensionSound:OnDisable()
+    if self.dropdown then self.dropdown:Hide() end
+    if self.frame then self.frame:Hide() end
+end
