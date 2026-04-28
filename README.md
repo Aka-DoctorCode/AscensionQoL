@@ -14,7 +14,7 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ***
 
-### **Ascension Sound:** is a simple and minimalistic add on to manage the in game Audio setting for retail **World of Warcraft**add on.add on
+### **Ascension Sound:** is a simple and minimalistic add on to manage the in game Audio setting for retail **World of Warcraft**.
 
 ### **AS** Key Features
 
@@ -24,7 +24,7 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ***
 
-### **Ascension FPS:** is a simple and minimalistic add on for **World of Warcraft** that shows the current FPS and gives you access to some of the in game video settings slidersadd on.add on
+### **Ascension FPS:** is a simple and minimalistic add on for **World of Warcraft** that shows the current FPS and gives you access to some of the in game video settings sliders.
 
 ### **AFPS** Key Features
 
@@ -45,7 +45,7 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 ***
 
-### **Ascension Sound:** es un add on sencillo y minimalista para gestionar la configuración de audio del juego **World of Warcraft**add on.add on
+### **Ascension Sound:** es un add on sencillo y minimalista para gestionar la configuración de audio del juego **World of Warcraft**.
 
 #### Características principales de **AS**
 
@@ -55,7 +55,7 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 ***
 
-### **Ascension FPS:** es un add on sencillo y minimalista para **World of Warcraft** que muestra los FPS actuales y te da acceso a algunos de los controles deslizantes de configuración de vídeo del juegoadd on.add on
+### **Ascension FPS:** es un add on sencillo y minimalista para **World of Warcraft** que muestra los FPS actuales y te da acceso a algunos de los controles deslizantes de configuración de vídeo del juego.
 
 #### Características principales de **AFPS**
 
