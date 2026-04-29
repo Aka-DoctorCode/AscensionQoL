@@ -1,7 +1,6 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>Ascension Suit Compatability added</li>
-    <li>New settings UI added</li>
-    <li>New module Ascension FPS added</li>
-    <li>Wago support added</li>
+    <li>Standardized method of uploading the addon to Curseforge and Wago</li>
 </ul>
+<br>
+<h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>
