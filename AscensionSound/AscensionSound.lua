@@ -229,7 +229,7 @@ function AscensionSound:createUI()
     end)
 
     -- Positioning constants
-    local topY = -8
+    local topY = -7
     local masterMuteX = 5
     local masterMuteWidth = 32
     local btnWidth = 26
@@ -434,73 +434,44 @@ function AscensionSound:showOptionsMenu(parentFrame)
     if private.showConfigFrame then private.showConfigFrame() end
     local aqolFrame = _G["AscensionQoLConfigFrame"]
 
-    local styles = self.ctx.styles
-    local colors = styles.colors
-    local profile = self.profile
+    self.optionsMenu = private:createSmartMenu(
+        self.ctx,
+        "Sound Module Options",
+        280,
+        aqolFrame,
+        "RIGHT",
+        self.profile,
+        function(layout, menu)
+            self.scaleSlider = layout:slider(nil, "Scale", 0.5, 2.0, 0.1,
+                function() return self.profile.scale end,
+                function(v)
+                    self.profile.scale = v
+                    if self.frame then self.frame:SetScale(v) end
+                end)
 
-    if not self.optionsMenu then
-        local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-        menu:SetSize(280, 320)
-        menu:SetFrameStrata("DIALOG")
-        menu:SetBackdrop({
-            bgFile = styles.files.bgFile,
-            edgeFile = styles.files.edgeFile,
-            edgeSize = 16,
-            insets = { left = 4, right = 4, top = 4, bottom = 4 }
-        })
-        menu:SetBackdropColor(unpack(colors.backgroundDark))
-        menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
-        self.optionsMenu = menu
+            local screenWidth = math.floor(GetScreenWidth())
+            self.xSlider = layout:slider(nil, "X Position", -screenWidth, screenWidth, 1,
+                function() return self.pos.x end,
+                function(v)
+                    self.pos.x = v
+                    if self.frame then
+                        self.frame:ClearAllPoints()
+                        self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
+                    end
+                end)
 
-        local layout = self.ctx.layoutModel:reset(menu, -20)
-        layout:header(nil, "Sound Module Options")
-
-        -- Scale Slider
-        self.scaleSlider = layout:slider(nil, "Scale", 0.5, 2.0, 0.1,
-            function() return self.profile.scale end,
-            function(v)
-                self.profile.scale = v
-                if self.frame then self.frame:SetScale(v) end
-            end)
-
-        -- X Position Slider
-        local screenWidth = math.floor(GetScreenWidth())
-        self.xSlider = layout:slider(nil, "X Position", -screenWidth, screenWidth, 1,
-            function() return self.pos.x end,
-            function(v)
-                self.pos.x = v
-                if self.frame then
-                    self.frame:ClearAllPoints()
-                    self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
-                end
-            end)
-
-        -- Y Position Slider
-        local screenHeight = math.floor(GetScreenHeight())
-        self.ySlider = layout:slider(nil, "Y Position", -screenHeight, screenHeight, 1,
-            function() return self.pos.y end,
-            function(v)
-                self.pos.y = v
-                if self.frame then
-                    self.frame:ClearAllPoints()
-                    self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
-                end
-            end)
-
-        -- Close button
-        local closeBtn = self.ctx:createCloseButton(menu, function() menu:Hide() end)
-        closeBtn:SetPoint("TOPRIGHT", -10, -10)
-
-    end
-
-    self.optionsMenu:ClearAllPoints()
-    if aqolFrame then
-        self.optionsMenu:SetPoint("LEFT", aqolFrame, "RIGHT", 10, 0)
-    else
-        self.optionsMenu:SetPoint("CENTER", UIParent, "CENTER", 250, 0)
-    end
-    self.optionsMenu:Show()
-    self:updateSliders()
+            local screenHeight = math.floor(GetScreenHeight())
+            self.ySlider = layout:slider(nil, "Y Position", -screenHeight, screenHeight, 1,
+                function() return self.pos.y end,
+                function(v)
+                    self.pos.y = v
+                    if self.frame then
+                        self.frame:ClearAllPoints()
+                        self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
+                    end
+                end)
+        end
+    )
 end
 
 function AscensionSound:updateSliders()
@@ -514,84 +485,15 @@ end
 -- CONTEXT MENU (Right-click)
 -------------------------------------------------------------------------------
 function AscensionSound:showContextMenu()
-    if self.contextMenu and self.contextMenu:IsShown() then
-        self.contextMenu:Hide()
-        return
-    end
-
-    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-    menu:SetSize(190, 150)
-    menu:SetFrameStrata("DIALOG")
-    menu:SetClampedToScreen(true)
-    menu:SetScale(self.profile.scale)
-    menu:SetBackdrop({
-        bgFile = self.ctx.styles.files.bgFile,
-        edgeFile = self.ctx.styles.files.edgeFile,
-        edgeSize = 1,
-    })
-    menu:SetBackdropColor(unpack(self.ctx.styles.colors.surfaceDark))
-    menu:SetBackdropBorderColor(unpack(self.ctx.styles.colors.surfaceHighlight))
-    menu:SetPoint("TOP", self.frame, "BOTTOM", 0, -5)
-    menu:Show()
-
-    -- Lock/Unlock
-    self.ctx:createButton({
-        parent = menu,
-        text = self.profile.locked and "Unlock" or "Lock",
-        width = 170, height = 28,
-        xOffset = 10, yOffset = -10,
-        onClick = function()
-            self.profile.locked = not self.profile.locked
-            self.frame:SetMovable(not self.profile.locked)
-            menu:Hide()
-        end,
-    })
-
-    -- Options Button (Opens secondary menu)
-    self.ctx:createButton({
-        parent = menu,
-        text = "Options",
-        width = 170, height = 28,
-        xOffset = 10, yOffset = -50,
-        onClick = function(btn)
-            menu:Hide()
-            self:showOptionsMenu()
-        end,
-    })
-
-    -- Reset position
-    self.ctx:createButton({
-        parent = menu,
-        text = "Reset position",
-        width = 170, height = 28,
-        xOffset = 10, yOffset = -90,
-        onClick = function()
-            self.pos.point = "CENTER"
-            self.pos.relativePoint = "CENTER"
-            self.pos.x = 0
-            self.pos.y = 0
-            self.frame:ClearAllPoints()
-            self.frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-            self:updateSliders()
-            menu:Hide()
-        end,
-    })
-
-    -- Full-screen click catcher to close menu
-    local closer = CreateFrame("Button", nil, UIParent)
-    closer:SetAllPoints()
-    closer:SetFrameStrata("BACKGROUND")
-    closer:SetFrameLevel(1)
-    closer:SetScript("OnClick", function()
-        menu:Hide()
-    end)
-    closer:Show()
-
-    menu:SetScript("OnHide", function()
-        closer:Hide()
-        self.contextMenu = nil
-    end)
-    self.contextMenu = menu
+    private:createContextMenu(
+        self.ctx,
+        self.frame,
+        self.profile,
+        self.pos,
+        { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 },
+        function() self:showOptionsMenu() end,
+        function() self:updateSliders() end
+    )
 end
 
 -------------------------------------------------------------------------------

@@ -255,72 +255,44 @@ function AscensionFPS:showOptionsMenu(parentFrame)
     if private.showConfigFrame then private.showConfigFrame() end
     local aqolFrame = _G["AscensionQoLConfigFrame"]
 
-    local styles = self.ctx.styles
-    local colors = styles.colors
-    local profile = self.profile.display
+    self.optionsMenu = private:createSmartMenu(
+        self.ctx,
+        "FPS Module Options",
+        280,
+        aqolFrame,
+        "RIGHT",
+        self.profile.display,
+        function(layout, menu)
+            self.scaleSlider = layout:slider(nil, "Scale", 0.5, 2.0, 0.1,
+                function() return self.profile.display.scale end,
+                function(v)
+                    self.profile.display.scale = v
+                    if self.frame then self.frame:SetScale(v) end
+                end)
 
-    if not self.optionsMenu then
-        local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-        menu:SetSize(280, 320)
-        menu:SetFrameStrata("DIALOG")
-        menu:SetBackdrop({
-            bgFile = styles.files.bgFile,
-            edgeFile = styles.files.edgeFile,
-            edgeSize = 16,
-            insets = { left = 4, right = 4, top = 4, bottom = 4 }
-        })
-        menu:SetBackdropColor(unpack(colors.backgroundDark))
-        menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
-        self.optionsMenu = menu
+            local screenWidth = math.floor(GetScreenWidth())
+            self.xSlider = layout:slider(nil, "X Position", -screenWidth, screenWidth, 1,
+                function() return self.pos.x end,
+                function(v)
+                    self.pos.x = v
+                    if self.frame then
+                        self.frame:ClearAllPoints()
+                        self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
+                    end
+                end)
 
-        local layout = self.ctx.layoutModel:reset(menu, -20)
-        layout:header(nil, "FPS Module Options")
-
-        -- Scale Slider
-        self.scaleSlider = layout:slider(nil, "Scale", 0.5, 2.0, 0.1,
-            function() return profile.scale end,
-            function(v)
-                profile.scale = v
-                if self.frame then self.frame:SetScale(v) end
-            end)
-
-        -- X Position Slider
-        local screenWidth = math.floor(GetScreenWidth())
-        self.xSlider = layout:slider(nil, "X Position", -screenWidth, screenWidth, 1,
-            function() return self.pos.x end,
-            function(v)
-                self.pos.x = v
-                if self.frame then
-                    self.frame:ClearAllPoints()
-                    self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
-                end
-            end)
-
-        -- Y Position Slider
-        local screenHeight = math.floor(GetScreenHeight())
-        self.ySlider = layout:slider(nil, "Y Position", -screenHeight, screenHeight, 1,
-            function() return self.pos.y end,
-            function(v)
-                self.pos.y = v
-                if self.frame then
-                    self.frame:ClearAllPoints()
-                    self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
-                end
-            end)
-
-        -- Close button
-        local closeBtn = self.ctx:createCloseButton(menu, function() menu:Hide() end)
-        closeBtn:SetPoint("TOPRIGHT", -10, -10)
-
-    end
-
-    self.optionsMenu:ClearAllPoints()
-    if aqolFrame then
-        self.optionsMenu:SetPoint("LEFT", aqolFrame, "RIGHT", 10, 0)
-    else
-        self.optionsMenu:SetPoint("CENTER", UIParent, "CENTER", 250, 0)
-    end
-    self.optionsMenu:Show()
+            local screenHeight = math.floor(GetScreenHeight())
+            self.ySlider = layout:slider(nil, "Y Position", -screenHeight, screenHeight, 1,
+                function() return self.pos.y end,
+                function(v)
+                    self.pos.y = v
+                    if self.frame then
+                        self.frame:ClearAllPoints()
+                        self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
+                    end
+                end)
+        end
+    )
 end
 
 function AscensionFPS:updateSliders()
@@ -330,173 +302,72 @@ function AscensionFPS:updateSliders()
     if self.ySlider then self.ySlider:SetValue(self.pos.y) end
 end
 
--- Menú contextual (clic derecho) – idéntico a AscensionSound
+-- Menú contextual (clic derecho)
 function AscensionFPS:showContextMenu()
-    if self.contextMenu and self.contextMenu:IsShown() then
-        self.contextMenu:Hide()
+    if not self.profile or not self.ctx then return end
+
+    private:createContextMenu(
+        self.ctx,
+        self.frame,
+        self.profile.display,
+        self.pos,
+        { point = "CENTER", relativePoint = "CENTER", x = 0, y = -200 },
+        function() self:showOptionsMenu() end,
+        function() self:updateSliders() end
+    )
+end
+
+-- Render Scale Menu (Clic Izquierdo)
+function AscensionFPS:showRenderScaleMenu()
+    if self.renderMenu and self.renderMenu:IsShown() then
+        self.renderMenu:Hide()
         return
     end
 
     if not self.profile or not self.ctx then return end
 
-    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-    menu:SetSize(190, 150)
-    menu:SetFrameStrata("DIALOG")
-    menu:SetClampedToScreen(true)
-    menu:SetScale(self.profile.display.scale or 1.0)
-    menu:SetBackdrop({
-        bgFile = styles.files.bgFile,
-        edgeFile = styles.files.edgeFile,
-        edgeSize = 1,
-    })
-    menu:SetBackdropColor(unpack(colors.surfaceDark))
-    menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+    self.renderMenu = private:createSmartMenu(
+        self.ctx,
+        "Render Scale",
+        250,
+        self.frame,
+        "BOTTOM",
+        self.profile.display,
+        function(layout, menu)
+            local minPct = 33
+            local maxPct = 200
 
-    menu:SetPoint("TOP", self.frame, "BOTTOM", 0, -5)
-    menu:Show()
-
-    -- Lock / Unlock
-    self.ctx:createButton({
-        parent = menu, text = self.profile.display.locked and "Unlock" or "Lock",
-        width = 170, height = 28, xOffset = 10, yOffset = -10,
-        onClick = function()
-            self.profile.display.locked = not self.profile.display.locked
-            if self.frame then
-                self.frame:SetMovable(not self.profile.display.locked)
+            if Settings and Settings.GetSetting then
+                local setting = Settings.GetSetting("PROXY_RENDERSCALE") or Settings.GetSetting("Graphics_RenderScale")
+                if setting and setting.GetMinValue and setting.GetMaxValue then
+                    local sMin = setting:GetMinValue()
+                    local sMax = setting:GetMaxValue()
+                    if sMin and sMax then
+                        minPct = math.floor(sMin * 100 + 0.5)
+                        maxPct = math.floor(sMax * 100 + 0.5)
+                    end
+                end
             end
-            menu:Hide()
-        end,
-    })
 
-    -- Options Button
-    self.ctx:createButton({
-        parent = menu, text = "Options",
-        width = 170, height = 28, xOffset = 10, yOffset = -50,
-        onClick = function(btn)
-            menu:Hide()
-            self:showOptionsMenu()
-        end,
-    })
-
-    -- Reset position
-    self.ctx:createButton({
-        parent = menu, text = "Reset position",
-        width = 170, height = 28, xOffset = 10, yOffset = -90,
-        onClick = function()
-            self.pos.point = "CENTER"
-            self.pos.relativePoint = "CENTER"
-            self.pos.x = 0
-            self.pos.y = -200
-            if self.frame then
-                self.frame:ClearAllPoints()
-                self.frame:SetPoint("CENTER", UIParent, "CENTER", 0, -200)
+            if maxPct == 200 then
+                local rawMax = tonumber(C_CVar.GetCVar("renderscaleMaxQuality"))
+                if rawMax then
+                    maxPct = math.floor(rawMax * 100 + 0.5)
+                end
             end
-            self:updateSliders()
-            menu:Hide()
-        end,
-    })
 
-    -- Close catcher
-    local closer = CreateFrame("Button", nil, UIParent)
-    closer:SetAllPoints()
-    closer:SetFrameStrata("BACKGROUND")
-    closer:SetFrameLevel(1)
-    closer:SetScript("OnClick", function()
-        menu:Hide()
-    end)
-    closer:Show()
+            if minPct > maxPct then minPct = maxPct end
 
-    menu:SetScript("OnHide", function()
-        closer:Hide()
-        self.contextMenu = nil
-    end)
-    self.contextMenu = menu
+            layout:slider(nil, "Render Scale  (" .. minPct .. "% = Min  |  100% = Native  |  " .. maxPct .. "% = Max)", minPct, maxPct, 5,
+                function()
+                    return math.floor((tonumber(C_CVar.GetCVar("renderscale")) or 1.0) * 100 + 0.5)
+                end,
+                function(v)
+                    C_CVar.SetCVar("renderscale", string.format("%.2f", v / 100))
+                end)
+        end
+    )
 end
-
--- Render Scale Menu (Clic Izquierdo)
--- function AscensionFPS:showRenderScaleMenu()
---     if self.renderMenu and self.renderMenu:IsShown() then
---         self.renderMenu:Hide()
---         return
---     end
-
---     if not self.profile or not self.ctx then return end
-
---     local styles = self.ctx.styles
---     local colors = styles.colors
-
---     local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
---     menu:SetSize(250, 130)
---     menu:SetFrameStrata("DIALOG")
---     menu:SetClampedToScreen(true)
---     menu:SetScale(self.profile.display.scale or 1.0)
---     menu:SetBackdrop({
---         bgFile = styles.files.bgFile,
---         edgeFile = styles.files.edgeFile,
---         edgeSize = 1,
---     })
---     menu:SetBackdropColor(unpack(colors.surfaceDark))
---     menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
-
---     menu:SetPoint("TOP", self.frame, "BOTTOM", 0, -5)
---     menu:Show()
-
---     local layout = self.ctx.layoutModel:reset(menu, -15)
---     layout:header(nil, "Render Scale")
-
---     -- Determine min and max allowed by hardware dynamically
---     local minPct = 33
---     local maxPct = 200
-
---     -- Try Settings API (Retail 10.0+)
---     if Settings and Settings.GetSetting then
---         local setting = Settings.GetSetting("PROXY_RENDERSCALE") or Settings.GetSetting("Graphics_RenderScale")
---         if setting and setting.GetMinValue and setting.GetMaxValue then
---             local sMin = setting:GetMinValue()
---             local sMax = setting:GetMaxValue()
---             if sMin and sMax then
---                 minPct = math.floor(sMin * 100 + 0.5)
---                 maxPct = math.floor(sMax * 100 + 0.5)
---             end
---         end
---     end
-
---     -- Fallback to CVar for max if Settings API didn't provide a specific limit
---     if maxPct == 200 then
---         local rawMax = tonumber(C_CVar.GetCVar("renderscaleMaxQuality"))
---         if rawMax then
---             maxPct = math.floor(rawMax * 100 + 0.5)
---         end
---     end
-
---     if minPct > maxPct then minPct = maxPct end
-
---     local currentPct = math.floor((tonumber(C_CVar.GetCVar("renderscale")) or 1.0) * 100 + 0.5)
-
---     layout:slider(nil, "Render Scale  (" .. minPct .. "% = Min  |  100% = Native  |  " .. maxPct .. "% = Max)", minPct, maxPct, 5,
---         function()
---             return math.floor((tonumber(C_CVar.GetCVar("renderscale")) or 1.0) * 100 + 0.5)
---         end,
---         function(v)
---             C_CVar.SetCVar("renderscale", string.format("%.2f", v / 100))
---         end)
-
---     -- Close catcher
---     local closer = CreateFrame("Button", nil, UIParent)
---     closer:SetAllPoints()
---     closer:SetFrameStrata("BACKGROUND")
---     closer:SetFrameLevel(1)
---     closer:SetScript("OnClick", function()
---         menu:Hide()
---     end)
---     closer:Show()
-
---     menu:SetScript("OnHide", function()
---         closer:Hide()
---         self.renderMenu = nil
---     end)
---     self.renderMenu = menu
--- end
 
 -- Ventana de configuración (pestañas usando Factory UI)
 function AscensionFPS:buildConfigWindow()

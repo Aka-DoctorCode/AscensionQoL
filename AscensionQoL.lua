@@ -181,7 +181,151 @@ function private:isModuleEnabled(moduleName)
     return private.db.profile.modules[moduleName] ~= false
 end
 
+function private:createContextMenu(ctx, moduleFrame, profile, pos, defaultPos, optionsCallback, updateSlidersCallback)
+    if moduleFrame.contextMenu and moduleFrame.contextMenu:IsShown() then
+        moduleFrame.contextMenu:Hide()
+        return
+    end
 
+    local styles = ctx.styles
+    local colors = styles.colors
+
+    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    local btnHeight = 28
+    local spacing = 10
+    local numButtons = 3
+    local totalHeight = (numButtons * btnHeight) + ((numButtons + 1) * spacing)
+    
+    menu:SetSize(190, totalHeight)
+    menu:SetFrameStrata("DIALOG")
+    menu:SetClampedToScreen(true)
+    menu:SetScale(profile.scale or 1.0)
+    menu:SetBackdrop({
+        bgFile = styles.files.bgFile,
+        edgeFile = styles.files.edgeFile,
+        edgeSize = 1,
+    })
+    menu:SetBackdropColor(unpack(colors.surfaceDark))
+    menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+    menu:SetPoint("TOP", moduleFrame, "BOTTOM", 0, -5)
+    menu:Show()
+
+    local lockBtn = ctx:createButton({
+        parent = menu,
+        text = profile.locked and "Unlock" or "Lock",
+        width = 170, height = btnHeight,
+        xOffset = 10, yOffset = -spacing,
+        onClick = function()
+            profile.locked = not profile.locked
+            if moduleFrame.SetMovable then
+                moduleFrame:SetMovable(not profile.locked)
+            end
+            menu:Hide()
+        end,
+    })
+
+    local optBtn = ctx:createButton({
+        parent = menu,
+        text = "Options",
+        width = 170, height = btnHeight,
+        xOffset = 10, yOffset = -(spacing * 2 + btnHeight),
+        onClick = function()
+            menu:Hide()
+            if optionsCallback then optionsCallback() end
+        end,
+    })
+
+    local resetBtn = ctx:createButton({
+        parent = menu,
+        text = "Reset position",
+        width = 170, height = btnHeight,
+        xOffset = 10, yOffset = -(spacing * 3 + btnHeight * 2),
+        onClick = function()
+            pos.point = defaultPos.point or "CENTER"
+            pos.relativePoint = defaultPos.relativePoint or "CENTER"
+            pos.x = defaultPos.x or 0
+            pos.y = defaultPos.y or 0
+            moduleFrame:ClearAllPoints()
+            moduleFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+            if updateSlidersCallback then updateSlidersCallback() end
+            menu:Hide()
+        end,
+    })
+
+    local closer = CreateFrame("Button", nil, UIParent)
+    closer:SetAllPoints()
+    closer:SetFrameStrata("BACKGROUND")
+    closer:SetFrameLevel(1)
+    closer:SetScript("OnClick", function() menu:Hide() end)
+    closer:Show()
+
+    menu:SetScript("OnHide", function()
+        closer:Hide()
+        moduleFrame.contextMenu = nil
+    end)
+    moduleFrame.contextMenu = menu
+end
+
+function private:createSmartMenu(ctx, title, width, anchorFrame, anchorPoint, profile, buildFunc)
+    local styles = ctx.styles
+    local colors = styles.colors
+
+    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    menu:SetWidth(width)
+    menu:SetFrameStrata("DIALOG")
+    if profile and profile.scale then
+        menu:SetScale(profile.scale)
+    end
+    menu:SetBackdrop({
+        bgFile = styles.files.bgFile,
+        edgeFile = styles.files.edgeFile,
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    menu:SetBackdropColor(unpack(colors.backgroundDark))
+    menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+
+    local content = CreateFrame("Frame", nil, menu)
+    content:SetSize(width, 10)
+
+    local layout = ctx.layoutModel:reset(content, -20)
+    layout:header(nil, title)
+
+    buildFunc(layout, menu)
+
+    local contentHeight = math.abs(layout.y) + 20
+    local maxHeight = 400
+
+    if contentHeight > maxHeight then
+        menu:SetHeight(maxHeight)
+        local scrollFrame = CreateFrame("ScrollFrame", nil, menu, "UIPanelScrollFrameTemplate")
+        scrollFrame:SetPoint("TOPLEFT", 10, -10)
+        scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
+        
+        content:SetParent(scrollFrame)
+        content:ClearAllPoints()
+        content:SetSize(width - 40, contentHeight)
+        scrollFrame:SetScrollChild(content)
+    else
+        menu:SetHeight(contentHeight)
+        content:SetPoint("TOPLEFT", 0, 0)
+        content:SetPoint("BOTTOMRIGHT", 0, 0)
+    end
+
+    local closeBtn = ctx:createCloseButton(menu, function() menu:Hide() end)
+    closeBtn:SetPoint("TOPRIGHT", -10, -10)
+
+    if anchorPoint == "RIGHT" and anchorFrame then
+        menu:SetPoint("LEFT", anchorFrame, "RIGHT", 10, 0)
+    elseif anchorPoint == "BOTTOM" and anchorFrame then
+        menu:SetPoint("TOP", anchorFrame, "BOTTOM", 0, -5)
+    else
+        menu:SetPoint("CENTER", UIParent, "CENTER", 250, 0)
+    end
+
+    menu:Show()
+    return menu
+end
 
 -------------------------------------------------------------------------------
 -- Initialization & Events
