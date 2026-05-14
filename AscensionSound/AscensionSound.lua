@@ -1,15 +1,9 @@
 -------------------------------------------------------------------------------
--- Project: AscensionSound
+-- Project: AscensionQoL
 -- Author: Aka-DoctorCode
 -- File: AscensionSound.lua
--- Version: @project-version@
 -------------------------------------------------------------------------------
--- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
---
--- This software and its source code are the exclusive property of the author.
--- No part of this file may be copied, modified, redistributed, or used in
--- derivative works without express written permission.
--------------------------------------------------------------------------------
+---@diagnostic disable: undefined-global, undefined-field, inject-field
 
 local addonName, private = ...
 local MAJOR, MINOR = "AscensionSound", 1
@@ -70,7 +64,7 @@ local function createTextureButton(parent, symbol, size, onClick, styles)
         edgeSize = 1,
         insets   = { left = 1, right = 1, top = 1, bottom = 1 }
     })
-    btn:SetBackdropColor(unpack(styles.colors.surfaceHighlight))
+    btn:SetBackdropColor(unpack(styles.colors.surfaceLight))
     btn:SetBackdropBorderColor(unpack(styles.colors.blackDetail))
 
     local iconTextures = {}
@@ -105,7 +99,7 @@ local function createTextureButton(parent, symbol, size, onClick, styles)
     end)
 
     btn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(unpack(styles.colors.surfaceHighlight))
+        self:SetBackdropColor(unpack(styles.colors.surfaceLight))
         self:SetBackdropBorderColor(unpack(styles.colors.blackDetail))
         self._holding = false
         setIconColor(unpack(styles.colors.textLight))
@@ -196,11 +190,11 @@ function AscensionSound:createUI()
     frame:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        edgeSize = 2,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 }
     })
-    frame:SetBackdropColor(unpack(styles.colors.backgroundDark))
-    frame:SetBackdropBorderColor(unpack(styles.colors.surfaceHighlight))
+    frame:SetBackdropColor(unpack(styles.colors.mainBackground))
+    frame:SetBackdropBorderColor(unpack(styles.colors.blackDetail))
     self.frame = frame
 
     -- Drag handling
@@ -310,11 +304,11 @@ function AscensionSound:createDropdownPanel()
     dropdown:SetBackdrop({
         bgFile = self.ctx.styles.files.bgFile,
         edgeFile = self.ctx.styles.files.edgeFile,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        edgeSize = 2,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 }
     })
     dropdown:SetBackdropColor(unpack(self.ctx.styles.colors.surfaceDark))
-    dropdown:SetBackdropBorderColor(unpack(self.ctx.styles.colors.surfaceHighlight))
+    dropdown:SetBackdropBorderColor(unpack(self.ctx.styles.colors.surfaceLight))
     dropdown:SetClampedToScreen(true)
     dropdown:EnableMouse(true)
     dropdown:Hide()

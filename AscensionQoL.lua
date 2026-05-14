@@ -2,14 +2,9 @@
 -- Project: AscensionQoL
 -- Author: Aka-DoctorCode
 -- File: AscensionQoL.lua
--- Version: @project-version@
 -------------------------------------------------------------------------------
--- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
---
--- This software and its source code are the exclusive property of the author.
--- No part of this file may be copied, modified, redistributed, or used in
--- derivative works without express written permission.
--------------------------------------------------------------------------------
+---@diagnostic disable: undefined-global, undefined-field, inject-field
+
 local addonName, private = ...
 
 -- Get Factory UI library
@@ -88,7 +83,8 @@ local function showConfigFrame()
     configFrame = CreateFrame("Frame", "AscensionQoLConfigFrame", UIParent, "BackdropTemplate")
     configFrame:SetSize(450, 400)
     configFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
-    configFrame:SetScale(profile.general.scale)
+    local scale = profile and profile.general and profile.general.scale or 1
+    configFrame:SetScale(scale)
     configFrame:SetMovable(true)
     configFrame:EnableMouse(true)
     configFrame:RegisterForDrag("LeftButton")
@@ -115,8 +111,8 @@ local function showConfigFrame()
         edgeSize = 16,
         insets = { left = 4, right = 4, top = 4, bottom = 4 }
     })
-    configFrame:SetBackdropColor(unpack(colors.backgroundDark))
-    configFrame:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+    configFrame:SetBackdropColor(unpack(colors.mainBackground))
+    configFrame:SetBackdropBorderColor(unpack(colors.surfaceLight))
 
     -- Header Title
     local title = configFrame:CreateFontString(nil, "OVERLAY", styles.fonts.header)
@@ -140,18 +136,22 @@ local function showConfigFrame()
 
     layout:checkbox(nil, "Enable Ascension Sound",
         "Control master volume and channels with a compact UI.",
-        function() return profile.modules["AscensionSound"] end,
+        function() return profile and profile.modules and profile.modules["AscensionSound"] or false end,
         function(v)
-            profile.modules["AscensionSound"] = v
+            if profile and profile.modules then
+                profile.modules["AscensionSound"] = v
+            end
             print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionSound|r " ..
                 (v and "enabled" or "disabled") .. " (Reload UI required).")
         end)
 
     layout:checkbox(nil, "Enable Ascension FPS",
         "Monitor your framerate with a customizable display.",
-        function() return profile.modules["AscensionFPS"] end,
+        function() return profile and profile.modules and profile.modules["AscensionFPS"] or false end,
         function(v)
-            profile.modules["AscensionFPS"] = v
+            if profile and profile.modules then
+                profile.modules["AscensionFPS"] = v
+            end
             print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionFPS|r " ..
                 (v and "enabled" or "disabled") .. " (Reload UI required).")
         end)
@@ -206,7 +206,7 @@ function private:createContextMenu(ctx, moduleFrame, profile, pos, defaultPos, o
         edgeSize = 1,
     })
     menu:SetBackdropColor(unpack(colors.surfaceDark))
-    menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+    menu:SetBackdropBorderColor(unpack(colors.surfaceLight))
     menu:SetPoint("TOP", moduleFrame, "BOTTOM", 0, -5)
     menu:Show()
 
@@ -282,8 +282,8 @@ function private:createSmartMenu(ctx, title, width, anchorFrame, anchorPoint, pr
         edgeSize = 16,
         insets = { left = 4, right = 4, top = 4, bottom = 4 }
     })
-    menu:SetBackdropColor(unpack(colors.backgroundDark))
-    menu:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+    menu:SetBackdropColor(unpack(colors.mainBackground))
+    menu:SetBackdropBorderColor(unpack(colors.surfaceLight))
 
     local content = CreateFrame("Frame", nil, menu)
     content:SetSize(width, 10)

@@ -1,15 +1,9 @@
 -------------------------------------------------------------------------------
--- Project: AscensionFPS
+-- Project: AscensionQoL
 -- Author: Aka-DoctorCode
 -- File: AscensionFPS.lua
--- Version: @project-version@
 -------------------------------------------------------------------------------
--- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
---
--- This software and its source code are the exclusive property of the author.
--- No part of this file may be copied, modified, redistributed, or used in
--- derivative works without express written permission.
--------------------------------------------------------------------------------
+---@diagnostic disable: undefined-global, undefined-field, inject-field
 
 local addonName, private = ...
 local MAJOR, MINOR = "AscensionFPS", 1
@@ -118,11 +112,12 @@ function AscensionFPS:createUI()
     self.frame:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
-        edgeSize = 8,
-        insets = { left = 2, right = 2, top = 2, bottom = 2 }
+        edgeSize = 2,
+        insets = { left = 1, right = -1, top = 1, bottom = 1 }
     })
-    self.frame:SetBackdropColor(unpack(colors.backgroundDark))
-    self.frame:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+    self.frame:SetBackdropColor(unpack(colors.mainBackground))
+    self.frame:SetBackdropBorderColor(unpack(colors.blackDetail
+))
 
     self.bgTexture = self.frame:CreateTexture(nil, "BACKGROUND")
     self.bgTexture:SetAllPoints()
@@ -390,8 +385,8 @@ function AscensionFPS:buildConfigWindow()
         edgeSize = 16,
         insets = { left = 4, right = 4, top = 4, bottom = 4 }
     })
-    self.configFrame:SetBackdropColor(unpack(colors.backgroundDark))
-    self.configFrame:SetBackdropBorderColor(unpack(colors.surfaceHighlight))
+    self.configFrame:SetBackdropColor(unpack(colors.mainBackground))
+    self.configFrame:SetBackdropBorderColor(unpack(colors.surfaceLight))
 
     -- Título
     local title = self.configFrame:CreateFontString(nil, "OVERLAY", styles.fonts.header)
@@ -408,7 +403,7 @@ function AscensionFPS:buildConfigWindow()
         edgeFile = styles.files.edgeFile,
         edgeSize = 1,
     })
-    closeBtn:SetBackdropColor(unpack(colors.surfaceHighlight))
+    closeBtn:SetBackdropColor(unpack(colors.surfaceLight))
     closeBtn:SetBackdropBorderColor(unpack(colors.blackDetail))
     local xLine1 = closeBtn:CreateTexture(nil, "OVERLAY")
     xLine1:SetTexture(styles.textures.bar)
@@ -429,7 +424,7 @@ function AscensionFPS:buildConfigWindow()
         xLine2:SetVertexColor(1, 0.4, 0.4)
     end)
     closeBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(unpack(colors.surfaceHighlight))
+        self:SetBackdropColor(unpack(colors.surfaceLight))
         xLine1:SetVertexColor(unpack(colors.textLight))
         xLine2:SetVertexColor(unpack(colors.textLight))
     end)
