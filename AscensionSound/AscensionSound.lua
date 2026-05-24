@@ -177,6 +177,7 @@ function AscensionSound:createUI()
 
     -- Main frame
     local frame = CreateFrame("Frame", "AscensionSoundMainFrame", UIParent, "BackdropTemplate")
+    if not frame then return end
     frame:SetSize(190, 40)
     -- Anchor to saved point
     frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
@@ -205,7 +206,7 @@ function AscensionSound:createUI()
         self:StopMovingOrSizing()
         C_Timer.After(0, function()
             local point, _, relativePoint, x, y = self:GetPoint()
-            if AscensionSound.pos and point then
+            if point and AscensionSound.pos then
                 AscensionSound.pos.point = point
                 AscensionSound.pos.relativePoint = relativePoint
                 AscensionSound.pos.x = x
@@ -230,24 +231,29 @@ function AscensionSound:createUI()
     local btnSpacing = 5
     local expandBtnWidth = 45
 
-    -- Master Mute (checkbox)
-    local masterMute = self.ctx:createCheckbox({
-        parent = frame,
-        text = "",
-        getter = function() return getCVarBool(cvars.Master.toggle) end,
-        setter = function(val) updateCVar(cvars.Master.toggle, val and "1" or "0") end,
-        yOffset = -4,
-        xOffset = 5,
-    })
-    masterMute:SetSize(masterMuteWidth, masterMuteWidth)
-    masterMute.tooltip = "Master Mute"
-    masterMute:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Master Mute", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    masterMute:SetScript("OnLeave", GameTooltip_Hide)
-    self.masterMute = masterMute
+    local masterMute
+    if self.ctx and self.ctx.createCheckbox then
+        masterMute = self.ctx:createCheckbox({
+            parent = frame,
+            text = "",
+            getter = function() return getCVarBool(cvars.Master.toggle) end,
+            setter = function(val) updateCVar(cvars.Master.toggle, val and "1" or "0") end,
+            yOffset = -4,
+            xOffset = 5,
+        })
+    end
+
+    if masterMute then
+        masterMute:SetSize(masterMuteWidth, masterMuteWidth)
+        masterMute.tooltip = "Master Mute"
+        masterMute:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Master Mute", 1, 1, 1)
+            GameTooltip:Show()
+        end)
+        masterMute:SetScript("OnLeave", GameTooltip_Hide)
+        self.masterMute = masterMute
+    end
 
     -- Decrease volume button (texture)
     local decX = masterMuteX + masterMuteWidth + btnSpacing
@@ -267,17 +273,22 @@ function AscensionSound:createUI()
 
     -- Expand / Dropdown button (text button, could be changed later)
     local expandX = frame:GetWidth() - expandBtnWidth - 5
-    local expandBtn = self.ctx:createButton({
-    parent = frame,
-    text = "Vol",
-    width = expandBtnWidth,
-    height = btnWidth,
-    xOffset = expandX,
-    yOffset = topY,
-    onClick = function() AscensionSound:toggleDropdown() end,
-    })
+    local expandBtn
+    if self.ctx and self.ctx.createButton then
+        expandBtn = self.ctx:createButton({
+            parent = frame,
+            text = "Vol",
+            width = expandBtnWidth,
+            height = btnWidth,
+            xOffset = expandX,
+            yOffset = topY,
+            onClick = function() AscensionSound:toggleDropdown() end,
+        })
+    end
     
-    expandBtn.text:SetFontObject("GameFontNormalLarge")
+    if expandBtn and expandBtn.text then
+        expandBtn.text:SetFontObject("GameFontNormalLarge")
+    end
 
     self:createDropdownPanel()
     self:updateMasterMuteState()
@@ -326,36 +337,47 @@ function AscensionSound:createDropdownPanel()
             layout:label(nil, channel, nil, self.ctx.styles.colors.gold)
 
             -- Checkbox (mute)
-            local cb = self.ctx:createCheckbox({
-                parent = dropdown,
-                text = "",
-                getter = function() return getCVarBool(data.toggle) end,
-                setter = function(val) updateCVar(data.toggle, val and "1" or "0") end,
-                yOffset = layout.y,
-                xOffset = 16,
-            })
-            cb:SetSize(28, 28)
-            cb:ClearAllPoints()
-            cb:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 16, layout.y)
+            local cb
+            if self.ctx and self.ctx.createCheckbox then
+                cb = self.ctx:createCheckbox({
+                    parent = dropdown,
+                    text = "",
+                    getter = function() return getCVarBool(data.toggle) end,
+                    setter = function(val) updateCVar(data.toggle, val and "1" or "0") end,
+                    yOffset = layout.y,
+                    xOffset = 16,
+                })
+            end
+
+            if cb then
+                cb:SetSize(28, 28)
+                cb:ClearAllPoints()
+                cb:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 16, layout.y)
+                table.insert(self.dropdownCheckboxes, { checkbox = cb, cvar = data.toggle })
+            end
 
             -- Slider (volume)
-            local slider = self.ctx:createSlider({
-                parent = dropdown,
-                text = "",
-                minVal = 0,
-                maxVal = 100,
-                step = 5,
-                getter = function() return getCVarNumber(data.volume) * 100 end,
-                setter = function(val) updateCVar(data.volume, val / 100) end,
-                width = 150,
-                xOffset = 50,
-                yOffset = layout.y - 10,
-            })
-            slider:ClearAllPoints()
-            slider:SetPoint("LEFT", cb, "RIGHT", 5, 0)
+            local slider
+            if self.ctx and self.ctx.createSlider then
+                slider = self.ctx:createSlider({
+                    parent = dropdown,
+                    text = "",
+                    minVal = 0,
+                    maxVal = 100,
+                    step = 5,
+                    getter = function() return getCVarNumber(data.volume) * 100 end,
+                    setter = function(val) updateCVar(data.volume, val / 100) end,
+                    width = 150,
+                    xOffset = 50,
+                    yOffset = layout.y - 10,
+                })
+            end
 
-            table.insert(self.dropdownSliders, { slider = slider, cvar = data.volume })
-            table.insert(self.dropdownCheckboxes, { checkbox = cb, cvar = data.toggle })
+            if slider then
+                slider:ClearAllPoints()
+                slider:SetPoint("LEFT", cb or dropdown, "RIGHT", 5, 0)
+                table.insert(self.dropdownSliders, { slider = slider, cvar = data.volume })
+            end
 
             layout.y = layout.y - 70
         end
@@ -367,6 +389,7 @@ end
 function AscensionSound:createDropdownCatcher()
     if self.dropdownCatcher then return end
     local catcher = CreateFrame("Button", nil, UIParent)
+    if not catcher then return end
     catcher:SetFrameStrata("BACKGROUND")
     catcher:SetFrameLevel(1)
     catcher:SetAllPoints()

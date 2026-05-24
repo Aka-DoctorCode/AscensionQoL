@@ -103,6 +103,7 @@ function AscensionFPS:createUI()
     self.pos = private.positions.AscensionFPS
 
     self.frame = CreateFrame("Frame", "AscensionFPSFrame", UIParent, "BackdropTemplate")
+    if not self.frame then return end
     self.frame:SetSize(80, 40)
     self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
     self.frame:SetMovable(true)
@@ -372,6 +373,7 @@ function AscensionFPS:buildConfigWindow()
     local colors = styles.colors
 
     self.configFrame = CreateFrame("Frame", "AscensionFPSConfig", UIParent, "BackdropTemplate")
+    if not self.configFrame then return end
     self.configFrame:SetSize(700, 500)
     self.configFrame:SetPoint("CENTER")
     self.configFrame:SetMovable(true)
@@ -379,6 +381,7 @@ function AscensionFPS:buildConfigWindow()
     self.configFrame:RegisterForDrag("LeftButton")
     self.configFrame:SetScript("OnDragStart", self.configFrame.StartMoving)
     self.configFrame:SetScript("OnDragStop", self.configFrame.StopMovingOrSizing)
+    self.configFrame:SetClampedToScreen(true)
     self.configFrame:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
@@ -436,7 +439,9 @@ function AscensionFPS:buildConfigWindow()
         function(panel) self:buildDisplayTab(panel) end,
         function(panel) self:buildTextTab(panel) end,
     }
-    self.configTabs = self.ctx:createTabbedInterface(self.configFrame, tabNames, buildFuncs, 1)
+    if self.ctx and self.ctx.createTabbedInterface then
+        self.configTabs = self.ctx:createTabbedInterface(self.configFrame, tabNames, buildFuncs, 1)
+    end
     self.configFrame:Hide()
 end
 

@@ -3,7 +3,7 @@
 ## Notes: Quality of Life features to have easier access to in-game options.
 ## Author: Aka-DoctorCode
 ## Category: Utility
-## Version: V10
+## Version: @project_version@
 ## SavedVariables: AscensionQoLDB AscensionQoLPositions
 ## RequiredDeps: AscensionSuit
 ## IconTexture: Interface\AddOns\AscensionQoL\Media\AkaDoctorCode.png

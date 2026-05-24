@@ -89,6 +89,7 @@ local function showConfigFrame()
     configFrame:EnableMouse(true)
     configFrame:RegisterForDrag("LeftButton")
     configFrame:SetFrameStrata("HIGH")
+    configFrame:SetClampedToScreen(true)
 
     configFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
     configFrame:SetScript("OnDragStop", function(self)
@@ -276,6 +277,7 @@ function private:createSmartMenu(ctx, title, width, anchorFrame, anchorPoint, pr
     if profile and profile.scale then
         menu:SetScale(profile.scale)
     end
+    menu:SetClampedToScreen(true)
     menu:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
