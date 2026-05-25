@@ -21,8 +21,8 @@ local colors = styles.colors
 local _, playerClass = UnitClass("player")
 
 -- Default profile settings (solo offset x,y desde el centro)
-local defaults = {
-    profile = {
+local function getDefaultFPSProfile()
+    return {
         general = {
             enabled = true,
             updateInterval = 0.5,
@@ -35,6 +35,7 @@ local defaults = {
             x = 0,
             y = -200,
             scale = 1.0,
+            alpha = 1.0,
             width = 80,
             height = 40,
             bgVisible = true,
@@ -42,19 +43,32 @@ local defaults = {
         },
         text = {
             customColor = { r = 1, g = 1, b = 1, a = 1 },
+            useClassColor = false,
             font = "Friz Quadrata TT",
             size = 16,
             style = "OUTLINE",
             align = "CENTER",
         },
-    },
-}
+    }
+end
+
+local function validateProfile(profile, defaults)
+    if not profile or type(profile) ~= "table" then return defaults end
+    for key, defaultVal in pairs(defaults) do
+        if profile[key] == nil then
+            profile[key] = defaultVal
+        elseif type(defaultVal) == "table" and type(profile[key]) == "table" then
+            validateProfile(profile[key], defaultVal)
+        end
+    end
+    return profile
+end
 
 -- Helper: get font path from LibSharedMedia
 local LSM = LibStub("LibSharedMedia-3.0")
 local function getFontPath(fontName)
-    if not fontName then return nil end
-    return LSM:Fetch("font", fontName)
+    local path = fontName and LSM:Fetch("font", fontName)
+    return path or "Fonts\\FRIZQT__.TTF"
 end
 
 -- Helper: format FPS with custom text
@@ -79,8 +93,14 @@ end
 local function applyTextColor()
     if not AscensionFPS.profile or not AscensionFPS.text then return end
     local profile = AscensionFPS.profile
-    local c = profile.text.customColor
-    if c then
+    if profile.text.useClassColor then
+        local _, class = UnitClass("player")
+        local classColor = class and RAID_CLASS_COLORS[class]
+        if classColor then
+            AscensionFPS.text:SetTextColor(classColor.r, classColor.g, classColor.b, 1)
+        end
+    else
+        local c = profile.text.customColor or { r = 1, g = 1, b = 1, a = 1 }
         AscensionFPS.text:SetTextColor(c.r, c.g, c.b, c.a)
     end
 end
@@ -90,11 +110,6 @@ function AscensionFPS:OnInitialize()
         self:Disable()
         return
     end
-
-    self.db = private.db
-    self.profile = self.db.profile.modulesData.AscensionFPS
-    self.ctx = UIFactory:CreateContext()
-
     self:RegisterEvent("PLAYER_LOGIN")
 end
 
@@ -138,16 +153,27 @@ function AscensionFPS:createUI()
         f:StopMovingOrSizing()
         f.isDragging = false
         C_Timer.After(0, function()
-            local point, _, relativePoint, x, y = f:GetPoint()
-            if self.pos and point then
-                self.pos.point = point
-                self.pos.relativePoint = relativePoint
-                self.pos.x = x
-                self.pos.y = y
+            local left = f:GetLeft()
+            local bottom = f:GetBottom()
+            if self.pos and left and bottom then
+                local w = f:GetWidth() or 0
+                local h = f:GetHeight() or 0
+                local screenW = GetScreenWidth() or 1920
+                local screenH = GetScreenHeight() or 1080
+                
+                self.pos.point = "CENTER"
+                self.pos.relativePoint = "CENTER"
+                self.pos.x = math.floor(left + w/2 - screenW/2 + 0.5)
+                self.pos.y = math.floor(bottom + h/2 - screenH/2 + 0.5)
+                
+                f:ClearAllPoints()
+                f:SetPoint("CENTER", UIParent, "CENTER", self.pos.x, self.pos.y)
+                
+                self:updateSliders()
             end
         end)
     end)
-
+ 
     self.frame:SetScript("OnMouseDown", function(_, btn)
         if btn == "RightButton" then AscensionFPS:showContextMenu() end
     end)
@@ -156,9 +182,26 @@ function AscensionFPS:createUI()
             AscensionFPS:showRenderScaleMenu()
         end
     end)
-
+ 
     local lastUpdate = 0
-    self.frame:SetScript("OnUpdate", function(_, elapsed)
+    self.frame:SetScript("OnUpdate", function(f, elapsed)
+        if f.isDragging then
+            local left = f:GetLeft()
+            local bottom = f:GetBottom()
+            if self.pos and left and bottom then
+                local w = f:GetWidth() or 0
+                local h = f:GetHeight() or 0
+                local screenW = GetScreenWidth() or 1920
+                local screenH = GetScreenHeight() or 1080
+                
+                self.pos.point = "CENTER"
+                self.pos.relativePoint = "CENTER"
+                self.pos.x = math.floor(left + w/2 - screenW/2 + 0.5)
+                self.pos.y = math.floor(bottom + h/2 - screenH/2 + 0.5)
+                self:updateSliders()
+            end
+        end
+
         if not self.profile or not self.profile.general.enabled then return end
         lastUpdate = lastUpdate + elapsed
         if lastUpdate >= (self.profile.general.updateInterval or 0.5) then
@@ -196,11 +239,14 @@ local function refreshDisplay()
     bg:SetAllPoints(frame)
 
     -- Fondo
+    local bgAlpha = profile.display.alpha or 1.0
+    frame:SetBackdropColor(colors.mainBackground[1], colors.mainBackground[2], colors.mainBackground[3], bgAlpha)
+    frame:SetBackdropBorderColor(colors.blackDetail[1], colors.blackDetail[2], colors.blackDetail[3], bgAlpha)
     if profile.display.bgVisible then
         bg:Show()
         local c = profile.display.bgColor
         if c then
-            bg:SetVertexColor(c.r, c.g, c.b, c.a)
+            bg:SetVertexColor(c.r, c.g, c.b, bgAlpha)
         end
     else
         bg:Hide()
@@ -266,6 +312,13 @@ function AscensionFPS:showOptionsMenu(parentFrame)
                     if self.frame then self.frame:SetScale(v) end
                 end)
 
+            self.alphaSlider = layout:slider(nil, "Alpha", 0.0, 1.0, 0.05,
+                function() return self.profile.display.alpha or 1.0 end,
+                function(v)
+                    self.profile.display.alpha = v
+                    refreshDisplay()
+                end)
+
             local screenWidth = math.floor(GetScreenWidth())
             self.xSlider = layout:slider(nil, "X Position", -screenWidth, screenWidth, 1,
                 function() return self.pos.x end,
@@ -287,6 +340,32 @@ function AscensionFPS:showOptionsMenu(parentFrame)
                         self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
                     end
                 end)
+
+            self.textSizeSlider = layout:slider(nil, "Text Size", 8, 48, 1,
+                function() return self.profile.text.size or 16 end,
+                function(v)
+                    self.profile.text.size = v
+                    refreshDisplay()
+                end)
+
+            layout:checkbox(nil, "Use Class Color", nil,
+                function() return self.profile.text.useClassColor end,
+                function(v)
+                    self.profile.text.useClassColor = v
+                    refreshDisplay()
+                end)
+
+            layout.y = layout.y - 10
+
+            layout:colorPicker(nil, "Text Color", nil,
+                function()
+                    local c = self.profile.text.customColor or { r = 1, g = 1, b = 1, a = 1 }
+                    return c.r, c.g, c.b, c.a
+                end,
+                function(r, g, b, a)
+                    self.profile.text.customColor = { r = r, g = g, b = b, a = a }
+                    refreshDisplay()
+                end, nil, true)
         end
     )
 end
@@ -294,8 +373,10 @@ end
 function AscensionFPS:updateSliders()
     if not self.optionsMenu or not self.optionsMenu:IsShown() then return end
     if self.scaleSlider then self.scaleSlider:SetValue(self.profile.display.scale) end
+    if self.alphaSlider then self.alphaSlider:SetValue(self.profile.display.alpha or 1.0) end
     if self.xSlider then self.xSlider:SetValue(self.pos.x) end
     if self.ySlider then self.ySlider:SetValue(self.pos.y) end
+    if self.textSizeSlider then self.textSizeSlider:SetValue(self.profile.text.size or 16) end
 end
 
 -- Menú contextual (clic derecho)
@@ -309,7 +390,14 @@ function AscensionFPS:showContextMenu()
         self.pos,
         { point = "CENTER", relativePoint = "CENTER", x = 0, y = -200 },
         function() self:showOptionsMenu() end,
-        function() self:updateSliders() end
+        function() self:updateSliders() end,
+        function()
+            private:resetModule("AscensionFPS")
+            self.profile = private.db.profile.modulesData.AscensionFPS
+            self.pos = private.positions.AscensionFPS
+            refreshDisplay()
+            self:updateSliders()
+        end
     )
 end
 
@@ -324,14 +412,14 @@ function AscensionFPS:showRenderScaleMenu()
 
     self.renderMenu = private:createSmartMenu(
         self.ctx,
-        "Render Scale",
-        250,
+        "",
+        192,
         self.frame,
         "BOTTOM",
         self.profile.display,
         function(layout, menu)
             local minPct = 33
-            local maxPct = 200
+            local maxPct = 100
 
             if Settings and Settings.GetSetting then
                 local setting = Settings.GetSetting("PROXY_RENDERSCALE") or Settings.GetSetting("Graphics_RenderScale")
@@ -343,24 +431,40 @@ function AscensionFPS:showRenderScaleMenu()
                         maxPct = math.floor(sMax * 100 + 0.5)
                     end
                 end
-            end
-
-            if maxPct == 200 then
+            else
                 local rawMax = tonumber(C_CVar.GetCVar("renderscaleMaxQuality"))
                 if rawMax then
                     maxPct = math.floor(rawMax * 100 + 0.5)
                 end
             end
 
+            if maxPct < 100 then maxPct = 100 end
             if minPct > maxPct then minPct = maxPct end
 
-            layout:slider(nil, "Render Scale  (" .. minPct .. "% = Min  |  100% = Native  |  " .. maxPct .. "% = Max)", minPct, maxPct, 5,
+            local renderSlider = layout:slider(nil, "Render Scale", minPct, maxPct, 5,
                 function()
                     return math.floor((tonumber(C_CVar.GetCVar("renderscale")) or 1.0) * 100 + 0.5)
                 end,
                 function(v)
                     C_CVar.SetCVar("renderscale", string.format("%.2f", v / 100))
                 end)
+            if renderSlider and renderSlider.label then
+                renderSlider.label:SetTextColor(unpack(self.ctx.styles.colors.gold))
+            end
+
+            local fgSlider = layout:slider(nil, "Max Foreground FPS", 10, 200, 5,
+                function() return tonumber(C_CVar.GetCVar("maxFPS")) or 100 end,
+                function(v) C_CVar.SetCVar("maxFPS", tostring(v)) end)
+            if fgSlider and fgSlider.label then
+                fgSlider.label:SetTextColor(unpack(self.ctx.styles.colors.gold))
+            end
+
+            local bgSlider = layout:slider(nil, "Max Background FPS", 8, 200, 5,
+                function() return tonumber(C_CVar.GetCVar("maxFPSBk")) or 30 end,
+                function(v) C_CVar.SetCVar("maxFPSBk", tostring(v)) end)
+            if bgSlider and bgSlider.label then
+                bgSlider.label:SetTextColor(unpack(self.ctx.styles.colors.gold))
+            end
         end
     )
 end
@@ -385,8 +489,8 @@ function AscensionFPS:buildConfigWindow()
     self.configFrame:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        edgeSize = 2,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 }
     })
     self.configFrame:SetBackdropColor(unpack(colors.mainBackground))
     self.configFrame:SetBackdropBorderColor(unpack(colors.surfaceLight))
@@ -400,7 +504,7 @@ function AscensionFPS:buildConfigWindow()
     -- Botón cerrar
     local closeBtn = CreateFrame("Button", nil, self.configFrame, "BackdropTemplate")
     closeBtn:SetSize(24, 24)
-    closeBtn:SetPoint("TOPRIGHT", -16, -16)
+    closeBtn:SetPoint("TOPRIGHT", -2, -2)
     closeBtn:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
@@ -480,6 +584,9 @@ function AscensionFPS:buildDisplayTab(panel)
     layout:checkbox(nil, "Show background", nil,
         function() return profile.display.bgVisible end,
         function(v) profile.display.bgVisible = v; refreshDisplay() end)
+    layout:slider(nil, "Alpha", 0.0, 1.0, 0.05,
+        function() return profile.display.alpha or 1.0 end,
+        function(v) profile.display.alpha = v; refreshDisplay() end)
     layout:slider(nil, "Width", 40, 300, 1,
         function() return profile.display.width end,
         function(v) profile.display.width = v; refreshDisplay() end)
@@ -554,6 +661,10 @@ function AscensionFPS:toggleConfig()
 end
 
 function AscensionFPS:PLAYER_LOGIN()
+    self.db = private.db
+    self.profile = self.db.profile.modulesData.AscensionFPS
+    self.profile = validateProfile(self.profile, getDefaultFPSProfile())
+    self.ctx = UIFactory:CreateContext()
     self:createUI()
     refreshDisplay()
     self:RegisterChatCommand("fps", function(cmd)

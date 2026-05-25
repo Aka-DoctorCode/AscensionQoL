@@ -1,6 +1,50 @@
-<h1>@project_version@</h1>
+<h1>@project-version@</h1>
+<br>
+<h2>NEW MODULE: AscensionAFK!</h2>
+<p>Transform idle time into immersive cinematic experience!</p>
 <ul>
-    <li>Added screen clamping to all elements</li>
+    <li><b>Sleepy Somnolence Vignette:</b> Screen edge darkens slowly, mimicking sleepy eyes losing focus!</li>
+    <li><b>Living Character Model:</b> Your hero comes alive on right side, performing random emotes!</li>
+    <li><b>Dynamic Camera:</b> Halved rotation speed for gorgeous 360-degree view of surroundings!</li>
+    <li><b>Smart Resource Saver:</b> Saves graphics card! Automatically limits FPS when away, restores instantly on return!</li>
+    <li><b>Logout Countdown:</b> Clean UI displaying exact time before character leaves game!</li>
+    <li><b>Standard Close Button & Draggable UX:</b> Standard close button and draggable frame closable via Escape key!</li>
+    <li><b>Right-Click Context Menu:</b> Lock, unlock, reset position, or open options directly from AFK screen!</li>
+    <li><b>Smart Logout Timer:</b> Automatically adapts duration based on activity type!</li>
+</ul>
+<br>
+<h2>AscensionFPS Improvements:</h2>
+<ul>
+    <li><b>Clean Menu UI:</b> Removed "Render & FPS Caps" title and "FPS Limits" divider header for cleaner layout!</li>
+    <li><b>Gold Menu Labels:</b> Slider labels in the left-click menu now use consistent gold color!</li>
+    <li><b>FPS Customization Options:</b> Added Alpha slider, Text Size slider, Class Color toggle, and Text Color picker to the options smart menu!</li>
+</ul>
+<br>
+<h2>AscensionSound Improvements:</h2>
+    <li><b>Master Volume Slider:</b> Added Master Volume slider to the sound options dropdown!</li>
+    <li><b>Sound Dropdown UX Redesign:</b> Reduced dropdown width, added a close button, and adjusted sliders to match the general module design!</li>
+    <li><b>Dropdown Alignment:</b> Aligned channel labels with checkbox left margin and set a vertical gap!</li>
+</ul>
+<br>
+<h2>Menu & UX Improvements:</h2>
+<ul>
+    <li><b>Unified Palette:</b> Unified color palette across all context and smart menus to match sound module options!</li>
+    <li><b>Narrower Smart Menus:</b> Reduced width of left-click smart menus and dropdowns for centered, clean layouts!</li>
+    <li><b>Slider Auto-Centering:</b> Sliders now automatically stretch to maintain identical margins on left and right frame borders!</li>
+    <li><b>Slider Label Spacing:</b> Reduced slider label vertical spacing for a tighter, cleaner layout!</li>
+    <li><b>Consistent Text Outlines:</b> Standardized text outline style to OUTLINE across all UI modules for visual consistency!</li>
+    <li><b>Close Button Relocation:</b> Positioned close buttons closer to top right corners to maximize usable space!</li>
+    <li><b>Scrollbar Collision Fix:</b> Prevented scrollbars from colliding with close buttons in option menus!</li>
+    <li><b>Fixed Center Dragging:</b> Dragging frames now calculates coordinates relative to a fixed center anchor for smooth, linear offset adjustments without jumps!</li>
+    <li><b>Escape Key Closing:</b> Main config window and options smart menus now properly close when pressing Escape key!</li>
+    <li><b>Click-Outside Auto-Close:</b> Context and smart menus now automatically close when clicking anywhere outside of them!</li>
+    <li><b>Menu Mutual Exclusion:</b> Only one options menu or context menu can be active at a time; opening a new menu automatically closes any other open ones!</li>
+</ul>
+<h2>Bug Fixes & Database Optimization:</h2>
+<ul>
+    <li><b>Database Persistence Fix:</b> Fixed issue where settings were not saved by loading the database during ADDON_LOADED event.</li>
+    <li><b>Database Unification:</b> Unified frame positions and settings into a single SavedVariable (AscensionQoLDB), removing AscensionQoLPositions.</li>
+    <li><b>Reset to Defaults:</b> Added option to reset modules to their default settings via right-click context menu.</li>
 </ul>
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>

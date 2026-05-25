@@ -3,8 +3,8 @@
 ## Notes: Quality of Life features to have easier access to in-game options.
 ## Author: Aka-DoctorCode
 ## Category: Utility
-## Version: @project_version@
-## SavedVariables: AscensionQoLDB AscensionQoLPositions
+## Version: @project-version@
+## SavedVariables: AscensionQoLDB
 ## RequiredDeps: AscensionSuit
 ## IconTexture: Interface\AddOns\AscensionQoL\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1419816
@@ -16,3 +16,5 @@ AscensionQoL.lua
 # Modules
 AscensionSound\AscensionSound.lua
 AscensionFPS\AscensionFPS.lua
+AscensionAFK\AscensionAFK.lua
+AscensionAFK\afkdebug.lua

@@ -26,7 +26,7 @@ local cvars = {
     Ambience = { volume = "Sound_AmbienceVolume", toggle = "Sound_EnableAmbience" },
     Dialog   = { volume = "Sound_DialogVolume",  toggle = "Sound_EnableDialog" }
 }
-local channelOrder = { "Music", "SFX", "Ambience", "Dialog" }
+local channelOrder = { "Master", "Music", "SFX", "Ambience", "Dialog" }
 
 -- Helper CVar functions (safe)
 local function getCVarNumber(cvar)
@@ -144,20 +144,17 @@ end
 -- ADDON DEFINITION
 -------------------------------------------------------------------------------
 function AscensionSound:OnInitialize()
-    -- Check if module is enabled by AscensionQoL core
     if private and private.isModuleEnabled and not private:isModuleEnabled("AscensionSound") then
         self:Disable()
         return
     end
-
-    self.db = private.db
-    self.profile = self.db.profile.modulesData.AscensionSound
-
     self:RegisterEvent("PLAYER_LOGIN")
     self:RegisterEvent("CVAR_UPDATE")
 end
 
 function AscensionSound:PLAYER_LOGIN()
+    self.db = private.db
+    self.profile = self.db.profile.modulesData.AscensionSound
     self:createUI()
     self:UnregisterEvent("PLAYER_LOGIN")
 end
@@ -200,20 +197,52 @@ function AscensionSound:createUI()
 
     -- Drag handling
     frame:SetScript("OnDragStart", function(self)
-        if not AscensionSound.profile.locked then self:StartMoving() end
+        if not AscensionSound.profile.locked then
+            self.isDragging = true
+            self:StartMoving()
+        end
     end)
     frame:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
+        self.isDragging = false
         C_Timer.After(0, function()
-            local point, _, relativePoint, x, y = self:GetPoint()
-            if point and AscensionSound.pos then
-                AscensionSound.pos.point = point
-                AscensionSound.pos.relativePoint = relativePoint
-                AscensionSound.pos.x = x
-                AscensionSound.pos.y = y
+            local left = self:GetLeft()
+            local bottom = self:GetBottom()
+            if left and bottom and AscensionSound.pos then
+                local w = self:GetWidth() or 0
+                local h = self:GetHeight() or 0
+                local screenW = GetScreenWidth() or 1920
+                local screenH = GetScreenHeight() or 1080
+                
+                AscensionSound.pos.point = "CENTER"
+                AscensionSound.pos.relativePoint = "CENTER"
+                AscensionSound.pos.x = math.floor(left + w/2 - screenW/2 + 0.5)
+                AscensionSound.pos.y = math.floor(bottom + h/2 - screenH/2 + 0.5)
+                
+                self:ClearAllPoints()
+                self:SetPoint("CENTER", UIParent, "CENTER", AscensionSound.pos.x, AscensionSound.pos.y)
+                
                 AscensionSound:updateSliders()
             end
         end)
+    end)
+    frame:SetScript("OnUpdate", function(self)
+        if self.isDragging then
+            local left = self:GetLeft()
+            local bottom = self:GetBottom()
+            if left and bottom and AscensionSound.pos then
+                local w = self:GetWidth() or 0
+                local h = self:GetHeight() or 0
+                local screenW = GetScreenWidth() or 1920
+                local screenH = GetScreenHeight() or 1080
+                
+                AscensionSound.pos.point = "CENTER"
+                AscensionSound.pos.relativePoint = "CENTER"
+                AscensionSound.pos.x = math.floor(left + w/2 - screenW/2 + 0.5)
+                AscensionSound.pos.y = math.floor(bottom + h/2 - screenH/2 + 0.5)
+                AscensionSound:updateSliders()
+            end
+        end
     end)
 
     -- Right-click context menu
@@ -309,8 +338,8 @@ function AscensionSound:createDropdownPanel()
     local numChannels = #channelOrder
     local rowHeight = 85
     
-    local padding = 30
-    dropdown:SetSize(250, numChannels * rowHeight + padding)
+    local padding = 45
+    dropdown:SetWidth(192)
     dropdown:SetPoint("TOP", self.frame, "BOTTOM", 0, -5)
     dropdown:SetBackdrop({
         bgFile = self.ctx.styles.files.bgFile,
@@ -325,8 +354,11 @@ function AscensionSound:createDropdownPanel()
     dropdown:Hide()
     self.dropdown = dropdown
 
+    local closeBtn = self.ctx:createCloseButton(dropdown, function() self:toggleDropdown() end)
+    closeBtn:SetPoint("TOPRIGHT", -2, -2)
+
     -- Layout model for easy vertical positioning
-    local layout = self.ctx.layoutModel:reset(dropdown, -15)
+    local layout = self.ctx.layoutModel:reset(dropdown, -20)
     self.dropdownSliders = {}
     self.dropdownCheckboxes = {}
 
@@ -334,7 +366,7 @@ function AscensionSound:createDropdownPanel()
         local data = cvars[channel]
         if data then
             -- Channel label
-            layout:label(nil, channel, nil, self.ctx.styles.colors.gold)
+            layout:label(nil, channel, 12, self.ctx.styles.colors.gold)
 
             -- Checkbox (mute)
             local cb
@@ -344,15 +376,15 @@ function AscensionSound:createDropdownPanel()
                     text = "",
                     getter = function() return getCVarBool(data.toggle) end,
                     setter = function(val) updateCVar(data.toggle, val and "1" or "0") end,
-                    yOffset = layout.y,
-                    xOffset = 16,
+                    yOffset = layout.y - 3,
+                    xOffset = 12,
                 })
             end
 
             if cb then
                 cb:SetSize(28, 28)
                 cb:ClearAllPoints()
-                cb:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 16, layout.y)
+                cb:SetPoint("TOPLEFT", dropdown, "TOPLEFT", 12, layout.y - 3)
                 table.insert(self.dropdownCheckboxes, { checkbox = cb, cvar = data.toggle })
             end
 
@@ -367,15 +399,16 @@ function AscensionSound:createDropdownPanel()
                     step = 5,
                     getter = function() return getCVarNumber(data.volume) * 100 end,
                     setter = function(val) updateCVar(data.volume, val / 100) end,
-                    width = 150,
-                    xOffset = 50,
-                    yOffset = layout.y - 10,
+                    width = 125,
+                    xOffset = 45,
+                    yOffset = layout.y - 13,
                 })
             end
 
             if slider then
                 slider:ClearAllPoints()
-                slider:SetPoint("LEFT", cb or dropdown, "RIGHT", 5, 0)
+                slider:SetPoint("LEFT", cb, "RIGHT", 8, 0)
+                slider:SetPoint("RIGHT", dropdown, "RIGHT", -12, 0)
                 table.insert(self.dropdownSliders, { slider = slider, cvar = data.volume })
             end
 
@@ -383,6 +416,7 @@ function AscensionSound:createDropdownPanel()
         end
     end
 
+    dropdown:SetHeight(math.abs(layout.y) - 5)
     self:createDropdownCatcher()
 end
 
@@ -509,7 +543,16 @@ function AscensionSound:showContextMenu()
         self.pos,
         { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 },
         function() self:showOptionsMenu() end,
-        function() self:updateSliders() end
+        function() self:updateSliders() end,
+        function()
+            private:resetModule("AscensionSound")
+            self.profile = private.db.profile.modulesData.AscensionSound
+            self.pos = private.positions.AscensionSound
+            self.frame:SetScale(self.profile.scale or 1.0)
+            self.frame:ClearAllPoints()
+            self.frame:SetPoint(self.pos.point, UIParent, self.pos.relativePoint, self.pos.x, self.pos.y)
+            self:updateSliders()
+        end
     )
 end
 

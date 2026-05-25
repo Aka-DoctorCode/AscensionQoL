@@ -25,7 +25,14 @@ local defaults = {
         },
         modules = {
             ["AscensionSound"] = true,
-            ["AscensionFPS"] = true,
+            ["AscensionFPS"]   = true,
+            ["AscensionAFK"]   = true,
+        },
+        positions = {
+            configFrame    = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0    },
+            AscensionSound = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0    },
+            AscensionFPS   = { point = "CENTER", relativePoint = "CENTER", x = 0, y = -200 },
+            AscensionAFK   = { point = "TOP",    relativePoint = "TOP",    x = 0, y = -200 },
         },
         modulesData = {
             AscensionSound = {
@@ -43,6 +50,7 @@ local defaults = {
                 },
                 display = {
                     scale = 1.0,
+                    alpha = 1.0,
                     locked = false,
                     width = 80,
                     height = 40,
@@ -50,13 +58,18 @@ local defaults = {
                     bgColor = { r = 0.02, g = 0.02, b = 0.031, a = 0.85 },
                 },
                 text = {
-                    useClassColor = true,
+                    useClassColor = false,
+                    customColor = { r = 1, g = 1, b = 1, a = 1 },
                     color = { r = 1, g = 0.8, b = 0.2, a = 1},
                     size = 16,
                     font = "Friz Quadrata TT",
                     style = "OUTLINE",
                 }
-            }
+            },
+            AscensionAFK = {
+                afkFPS      = 8,
+                savedFpsCap = 60,
+            },
         }
     }
 }
@@ -66,6 +79,25 @@ local defaults = {
 -------------------------------------------------------------------------------
 local function initializeDB()
     private.db = LibStub("AceDB-3.0"):New("AscensionQoLDB", defaults, "Default")
+end
+
+local function deepCopyInto(dest, src)
+    for k in pairs(dest) do dest[k] = nil end
+    for k, v in pairs(src) do
+        dest[k] = type(v) == "table" and deepCopyInto({}, v) or v
+    end
+    return dest
+end
+
+function private:resetModule(moduleName)
+    local moduleDefaults = defaults.profile.modulesData[moduleName]
+    local posDefaults    = defaults.profile.positions[moduleName]
+    if moduleDefaults and private.db.profile.modulesData[moduleName] then
+        deepCopyInto(private.db.profile.modulesData[moduleName], moduleDefaults)
+    end
+    if posDefaults and private.db.profile.positions[moduleName] then
+        deepCopyInto(private.db.profile.positions[moduleName], posDefaults)
+    end
 end
 
 local function showConfigFrame()
@@ -109,8 +141,8 @@ local function showConfigFrame()
     configFrame:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        edgeSize = 2,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 }
     })
     configFrame:SetBackdropColor(unpack(colors.mainBackground))
     configFrame:SetBackdropBorderColor(unpack(colors.surfaceLight))
@@ -123,7 +155,12 @@ local function showConfigFrame()
 
     -- Close Button (Factory style)
     local closeBtn = ctx:createCloseButton(configFrame, function() configFrame:Hide() end)
-    closeBtn:SetPoint("TOPRIGHT", -10, -10)
+    closeBtn:SetPoint("TOPRIGHT", -2, -2)
+
+    local UIFactory = LibStub("AscensionSuit-UI")
+    if UIFactory and UIFactory.UX then
+        UIFactory.UX:makeClosableWithEscape(configFrame)
+    end
 
     -- Content Frame (No Scroll)
     local content = CreateFrame("Frame", nil, configFrame)
@@ -157,6 +194,17 @@ local function showConfigFrame()
                 (v and "enabled" or "disabled") .. " (Reload UI required).")
         end)
 
+    layout:checkbox(nil, "Enable Ascension AFK",
+        "Lower FPS and show overlay when you go AFK. Restores your previous cap on return.",
+        function() return profile and profile.modules and profile.modules["AscensionAFK"] or false end,
+        function(v)
+            if profile and profile.modules then
+                profile.modules["AscensionAFK"] = v
+            end
+            print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionAFK|r " ..
+                (v and "enabled" or "disabled") .. " (Reload UI required).")
+        end)
+
     -- Reload UI Button
     layout:button(nil, "Reload UI", "Apply changes by reloading the interface.", 140, 28, 140, function()
         ReloadUI()
@@ -182,23 +230,54 @@ function private:isModuleEnabled(moduleName)
     return private.db.profile.modules[moduleName] ~= false
 end
 
-function private:createContextMenu(ctx, moduleFrame, profile, pos, defaultPos, optionsCallback, updateSlidersCallback)
+function private:closeAllMenus()
+    local aceAddon = LibStub("AceAddon-3.0", true)
+    if not aceAddon then return end
+
+    local modules = { "AscensionFPS", "AscensionSound", "AscensionAFK" }
+    for _, moduleName in ipairs(modules) do
+        local addon = aceAddon:GetAddon(moduleName, true)
+        if addon then
+            if addon.frame and addon.frame.contextMenu then
+                addon.frame.contextMenu:Hide()
+            end
+            if addon.afkFrame and addon.afkFrame.contextMenu then
+                addon.afkFrame.contextMenu:Hide()
+            end
+            if addon.optionsMenu then
+                addon.optionsMenu:Hide()
+            end
+            if addon.renderMenu then
+                addon.renderMenu:Hide()
+            end
+            if addon.dropdown and addon.dropdown:IsShown() and addon.toggleDropdown then
+                addon:toggleDropdown()
+            end
+        end
+    end
+end
+
+function private:createContextMenu(ctx, moduleFrame, profile, pos, defaultPos, optionsCallback, updateSlidersCallback, resetCallback)
     if moduleFrame.contextMenu and moduleFrame.contextMenu:IsShown() then
         moduleFrame.contextMenu:Hide()
         return
     end
 
+    private:closeAllMenus()
+
     local styles = ctx.styles
     local colors = styles.colors
 
-    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    local menuParent = moduleFrame:GetParent() or UIParent
+    local menu = CreateFrame("Frame", nil, menuParent, "BackdropTemplate")
     local btnHeight = 28
     local spacing = 10
-    local numButtons = 3
+    local numButtons = resetCallback and 4 or 3
     local totalHeight = (numButtons * btnHeight) + ((numButtons + 1) * spacing)
     
     menu:SetSize(190, totalHeight)
     menu:SetFrameStrata("DIALOG")
+    menu:SetFrameLevel(2)
     menu:SetClampedToScreen(true)
     menu:SetScale(profile.scale or 1.0)
     menu:SetBackdrop({
@@ -247,15 +326,28 @@ function private:createContextMenu(ctx, moduleFrame, profile, pos, defaultPos, o
             pos.x = defaultPos.x or 0
             pos.y = defaultPos.y or 0
             moduleFrame:ClearAllPoints()
-            moduleFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+            moduleFrame:SetPoint(pos.point, menuParent, pos.relativePoint, pos.x, pos.y)
             if updateSlidersCallback then updateSlidersCallback() end
             menu:Hide()
         end,
     })
 
+    if resetCallback then
+        ctx:createButton({
+            parent = menu,
+            text = "Reset to defaults",
+            width = 170, height = btnHeight,
+            xOffset = 10, yOffset = -(spacing * 4 + btnHeight * 3),
+            onClick = function()
+                menu:Hide()
+                resetCallback()
+            end,
+        })
+    end
+
     local closer = CreateFrame("Button", nil, UIParent)
-    closer:SetAllPoints()
-    closer:SetFrameStrata("BACKGROUND")
+    closer:SetAllPoints(UIParent)
+    closer:SetFrameStrata("DIALOG")
     closer:SetFrameLevel(1)
     closer:SetScript("OnClick", function() menu:Hide() end)
     closer:Show()
@@ -268,10 +360,18 @@ function private:createContextMenu(ctx, moduleFrame, profile, pos, defaultPos, o
 end
 
 function private:createSmartMenu(ctx, title, width, anchorFrame, anchorPoint, profile, buildFunc)
+    private:closeAllMenus()
+
     local styles = ctx.styles
     local colors = styles.colors
 
-    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    local menuParent = UIParent
+    if not UIParent:IsShown() then
+        menuParent = WorldFrame
+    end
+
+    local menuName = "AscensionQoLSmartMenu_" .. tostring(math.random(1000000, 9999999))
+    local menu = CreateFrame("Frame", menuName, menuParent, "BackdropTemplate")
     menu:SetWidth(width)
     menu:SetFrameStrata("DIALOG")
     if profile and profile.scale then
@@ -281,27 +381,36 @@ function private:createSmartMenu(ctx, title, width, anchorFrame, anchorPoint, pr
     menu:SetBackdrop({
         bgFile = styles.files.bgFile,
         edgeFile = styles.files.edgeFile,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        edgeSize = 2,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 }
     })
-    menu:SetBackdropColor(unpack(colors.mainBackground))
+    menu:SetBackdropColor(unpack(colors.surfaceDark))
     menu:SetBackdropBorderColor(unpack(colors.surfaceLight))
+
+    local UIFactory = LibStub("AscensionSuit-UI")
+    if UIFactory and UIFactory.UX then
+        UIFactory.UX:makeClosableWithEscape(menu)
+    end
 
     local content = CreateFrame("Frame", nil, menu)
     content:SetSize(width, 10)
 
     local layout = ctx.layoutModel:reset(content, -20)
-    layout:header(nil, title)
+    if title and title ~= "" then
+        layout:header(nil, title)
+    else
+        layout.y = -20
+    end
 
     buildFunc(layout, menu)
 
-    local contentHeight = math.abs(layout.y) + 20
+    local contentHeight = math.abs(layout.y) - 5
     local maxHeight = 400
 
     if contentHeight > maxHeight then
         menu:SetHeight(maxHeight)
         local scrollFrame = CreateFrame("ScrollFrame", nil, menu, "UIPanelScrollFrameTemplate")
-        scrollFrame:SetPoint("TOPLEFT", 10, -10)
+        scrollFrame:SetPoint("TOPLEFT", 10, -40)
         scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
         
         content:SetParent(scrollFrame)
@@ -315,15 +424,28 @@ function private:createSmartMenu(ctx, title, width, anchorFrame, anchorPoint, pr
     end
 
     local closeBtn = ctx:createCloseButton(menu, function() menu:Hide() end)
-    closeBtn:SetPoint("TOPRIGHT", -10, -10)
+    closeBtn:SetPoint("TOPRIGHT", -2, -2)
 
-    if anchorPoint == "RIGHT" and anchorFrame then
+    if anchorPoint == "RIGHT" and anchorFrame and anchorFrame:IsShown() then
         menu:SetPoint("LEFT", anchorFrame, "RIGHT", 10, 0)
-    elseif anchorPoint == "BOTTOM" and anchorFrame then
+    elseif anchorPoint == "LEFT" and anchorFrame and anchorFrame:IsShown() then
+        menu:SetPoint("RIGHT", anchorFrame, "LEFT", -10, 0)
+    elseif anchorPoint == "BOTTOM" and anchorFrame and anchorFrame:IsShown() then
         menu:SetPoint("TOP", anchorFrame, "BOTTOM", 0, -5)
     else
-        menu:SetPoint("CENTER", UIParent, "CENTER", 250, 0)
+        menu:SetPoint("CENTER", menuParent, "CENTER", 250, 0)
     end
+
+    local closer = CreateFrame("Button", nil, UIParent)
+    closer:SetAllPoints(UIParent)
+    closer:SetFrameStrata("DIALOG")
+    closer:SetFrameLevel(menu:GetFrameLevel() - 1)
+    closer:SetScript("OnClick", function() menu:Hide() end)
+    closer:Show()
+
+    menu:HookScript("OnHide", function()
+        closer:Hide()
+    end)
 
     menu:Show()
     return menu
@@ -333,27 +455,15 @@ end
 -- Initialization & Events
 -------------------------------------------------------------------------------
 local function initPositions()
-    if not AscensionQoLPositions then
-        AscensionQoLPositions = {}
-    end
-    local p = AscensionQoLPositions
-    if not p.configFrame then p.configFrame = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 } end
-    if not p.AscensionSound then p.AscensionSound = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 } end
-    if not p.AscensionFPS then p.AscensionFPS = { point = "CENTER", relativePoint = "CENTER", x = 0, y = -200 } end
-    private.positions = AscensionQoLPositions
+    private.positions = private.db.profile.positions
 end
-
-initializeDB()
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
-eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self, event, arg1)
-    if event == "PLAYER_LOGIN" then
-        -- SavedVariables are guaranteed loaded by PLAYER_LOGIN
+    if event == "ADDON_LOADED" and arg1 == addonName then
+        initializeDB()
         initPositions()
-    elseif event == "ADDON_LOADED" and arg1 == addonName then
-        if not private.db then initializeDB() end
 
         -- Slash commands
         SLASH_AQOL1 = "/aqol"

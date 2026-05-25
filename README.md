@@ -19,7 +19,7 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 ### **AS** Key Features
 
 * It creates a simple frame that you can place wherever you want on the screen and it has a fast mute toggle, `+` and `-` buttons to increase and decrease the master in game volume.
-* You have access to a dropped menu `VOL` to manage all the Audio sliders individually.
+* You have access to a dropdown menu `VOL` to manage all the Audio sliders (including Master Volume) individually.
 * Access its own contextual menu by `Right Clicking` the main frame which give access to some options.
 
 ***
@@ -30,6 +30,20 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 * It creates a simple frame that you can place wherever you want on the screen and it has a fast access to the FPS and render scale and FPS sliders.
 * Access its own contextual menu by `Right Clicking` the main frame which give access to some options.
+
+***
+
+### **Ascension AFK:** is a fully immersive AFK experience for **World of Warcraft** that transforms your idle screen into a cinematic interface.
+
+### **AAFK** Key Features
+
+* Slowly applies a somnolence vignette fade that darkens screen edges and loses peripheral focus.
+* Automatically limits in-game FPS cap to save hardware resources, and restores it instantly when you return.
+* Displays a gorgeous 3D model of your character playing random emotes on the right side of the screen.
+* Plays a smooth 360-degree rotation of your camera around your character.
+* Displays a clean countdown timer showing the remaining time before character logout (35 minutes if manually activated, 30 minutes if automatic).
+* Fully draggable and closable via close button or Escape key.
+* Access a context menu by right-clicking the frame to lock/unlock, reset position, or open options slider.
 
 ***
 
@@ -50,7 +64,7 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 #### Características principales de **AS**
 
 * Crea un marco sencillo que puedes colocar donde quieras en la pantalla y tiene un botón para silenciar rápidamente, y botones `+` y `-` para aumentar y disminuir el volumen maestro del juego.
-* Tienes acceso a un menú desplegable `VOL` para gestionar todos los controles deslizantes de audio individualmente.
+* Tienes acceso a un menú desplegable `VOL` para gestionar todos los controles deslizantes de audio (incluyendo el Volumen Maestro) individualmente.
 * Accede a su propio menú contextual haciendo **clic derecho** en el marco principal, lo que te da acceso a algunas opciones.
 
 ***
@@ -61,5 +75,19 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 * Crea un marco sencillo que puedes colocar donde quieras en la pantalla y tiene acceso rápido a los controles deslizantes de FPS, escala de renderizado y FPS.
 * Accede a su propio menú contextual haciendo **clic derecho** en el marco principal, lo que te da acceso a algunas opciones.
+
+***
+
+### **Ascension AFK:** es una experiencia de AFK totalmente inmersiva para **World of Warcraft** que transforma tu pantalla de inactividad en una interfaz cinematográfica.
+
+#### Características principales de **AAFK**
+
+* Aplica lentamente un desvanecimiento de viñeta de somnolencia que oscurece los bordes de la pantalla y pierde el enfoque periférico.
+* Limita automáticamente el límite de FPS del juego para ahorrar recursos de hardware, y lo restaura instantáneamente al regresar.
+* Muestra un magnífico modelo 3D de tu personaje realizando emotes aleatorios en el lado derecho de la pantalla.
+* Realiza una suave rotación de 360 grados de tu cámara alrededor de tu personaje.
+* Muestra un temporizador de cuenta regresiva limpio que indica el tiempo restante antes del cierre de sesión del personaje (35 minutos si se activa manualmente, 30 minutos si es automático).
+* Totalmente arrastrable y que se puede cerrar mediante el botón de cierre o la tecla Escape.
+* Accede a un menú contextual haciendo clic derecho en el marco para bloquear/desbloquear, restablecer posición o abrir el deslizador de opciones.
 
 ***
