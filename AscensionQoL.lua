@@ -27,6 +27,7 @@ local defaults = {
             ["AscensionSound"] = true,
             ["AscensionFPS"]   = true,
             ["AscensionAFK"]   = true,
+            ["AscensionHearthstone"] = true,
         },
         positions = {
             configFrame    = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0    },
@@ -69,6 +70,11 @@ local defaults = {
             AscensionAFK = {
                 afkFPS      = 8,
                 savedFpsCap = 60,
+            },
+            AscensionHearthstone = {
+                enabled = true,
+                savedZoom = 15,
+                shouldRestore = false,
             },
         }
     }
@@ -202,6 +208,17 @@ local function showConfigFrame()
                 profile.modules["AscensionAFK"] = v
             end
             print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionAFK|r " ..
+                (v and "enabled" or "disabled") .. " (Reload UI required).")
+        end)
+
+    layout:checkbox(nil, "Enable Ascension Hearthstone",
+        "Rotate and zoom camera during teleport/Hearthstone casting.",
+        function() return profile and profile.modules and profile.modules["AscensionHearthstone"] or false end,
+        function(v)
+            if profile and profile.modules then
+                profile.modules["AscensionHearthstone"] = v
+            end
+            print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionHearthstone|r " ..
                 (v and "enabled" or "disabled") .. " (Reload UI required).")
         end)
 
@@ -484,4 +501,3 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1)
         self:UnregisterEvent("ADDON_LOADED")
     end
 end)
-

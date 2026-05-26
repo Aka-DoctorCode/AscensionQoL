@@ -3,7 +3,7 @@
 ## Notes: Quality of Life features to have easier access to in-game options.
 ## Author: Aka-DoctorCode
 ## Category: Utility
-## Version: @project-version@
+## Version: V13
 ## SavedVariables: AscensionQoLDB
 ## RequiredDeps: AscensionSuit
 ## IconTexture: Interface\AddOns\AscensionQoL\Media\AkaDoctorCode.png
@@ -18,3 +18,4 @@ AscensionSound\AscensionSound.lua
 AscensionFPS\AscensionFPS.lua
 AscensionAFK\AscensionAFK.lua
 AscensionAFK\afkdebug.lua
+AscensionHearthstone\AscensionHearthstone.lua

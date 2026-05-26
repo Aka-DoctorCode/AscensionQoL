@@ -47,6 +47,17 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ***
 
+### **Ascension Hearthstone:** adds a cinematic camera effect when using any Hearthstone, teleport toy, or portal spell.
+
+### **AH** Key Features
+
+* Hides the user interface (except the cast bar) to increase immersion during the cast.
+* Automatically zooms the camera in to the character and rotates the view dynamically based on the cast duration.
+* Calculates camera rotations appropriately for short and long cast times.
+* Smoothly restores the original camera zoom and UI elements if the cast finishes or is interrupted by moving.
+
+***
+
 Este add on contendrá módulos más pequeños para proporcionar ajustes de calidad de vida o adiciones que me resulten útiles o que necesite.
 
 Aceptaré sugerencias para este add on, al igual que con cualquier otro add on que haya creado o vaya a crear.
@@ -89,5 +100,16 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 * Muestra un temporizador de cuenta regresiva limpio que indica el tiempo restante antes del cierre de sesión del personaje (35 minutos si se activa manualmente, 30 minutos si es automático).
 * Totalmente arrastrable y que se puede cerrar mediante el botón de cierre o la tecla Escape.
 * Accede a un menú contextual haciendo clic derecho en el marco para bloquear/desbloquear, restablecer posición o abrir el deslizador de opciones.
+
+***
+
+### **Ascension Hearthstone:** añade un efecto de cámara cinematográfica al usar cualquier Piedra de hogar, juguete de teletransporte o hechizo de portal.
+
+#### Características principales de **AH**
+
+* Oculta la interfaz de usuario (excepto la barra de lanzamiento) para aumentar la inmersión durante el lanzamiento.
+* Acerca automáticamente la cámara al personaje y rota la vista dinámicamente según la duración del lanzamiento.
+* Calcula las rotaciones de cámara de manera adecuada para tiempos de lanzamiento cortos y largos.
+* Restaura suavemente el zoom original de la cámara y los elementos de la interfaz si el lanzamiento termina o es interrumpido por movimiento.
 
 ***
