@@ -278,7 +278,8 @@ local function hideUIButCastBar()
         reparentFrame(AscensionCastBarTextFrame, WorldFrame)
     end
     
-    C_Timer.After(0, function() UIParent:Hide() end)
+    UIParent:Hide()
+
 end
 
 local function restoreUI()
