@@ -172,6 +172,7 @@ local KNOWN_ITEMS = {
     22630,  -- Atiesh, Greatstaff of the Guardian (Warlock)
     22631,  -- Atiesh, Greatstaff of the Guardian (Priest)
     22632,  -- Atiesh, Greatstaff of the Guardian (Druid)
+    180817, -- cypher Of Relocation
 }
 
 function AscensionHearthstone:InitializeSpellTable()
@@ -278,8 +279,7 @@ local function hideUIButCastBar()
         reparentFrame(AscensionCastBarTextFrame, WorldFrame)
     end
     
-    UIParent:Hide()
-
+    C_Timer.After(0, function() UIParent:Hide() end)
 end
 
 local function restoreUI()
@@ -338,10 +338,9 @@ end
 function AscensionHearthstone:onUpdate(elapsed)
     if not self.isCasting then return end
     
-    if GetUnitSpeed("player") > 0 then
-        self:stopCastingEffect(false)
-        return
-    end
+    -- Removing GetUnitSpeed check to avoid combat taint. 
+    -- The cast will be interrupted natively if the player moves, 
+    -- triggering UNIT_SPELLCAST_INTERRUPTED.
     
     local currentTime = GetTime()
     local progress = (currentTime - self.castStartTime) / self.castDuration

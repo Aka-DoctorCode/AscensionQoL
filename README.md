@@ -4,7 +4,10 @@
 
 This add on will contain smaller add ons (modules) to provide QoL settings or additions that I find useful or that I have need.
 
-I will take suggestions for this add on as with any other add that I have made and will made.
+I will take suggestions for this add on as with any other add that I have made and will made. 
+
+### If you want any of the modules to become it own add on just request it.
+
 
 ***
 
@@ -18,9 +21,9 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ### **AS** Key Features
 
-* It creates a simple frame that you can place wherever you want on the screen and it has a fast mute toggle, `+` and `-` buttons to increase and decrease the master in game volume.
-* You have access to a dropdown menu `VOL` to manage all the Audio sliders (including Master Volume) individually.
-* Access its own contextual menu by `Right Clicking` the main frame which give access to some options.
+*   It creates a simple frame that you can place wherever you want on the screen and it has a fast mute toggle, `+` and `-` buttons to increase and decrease the master in game volume.
+*   You have access to a dropdown menu `VOL` to manage all the Audio sliders (including Master Volume) individually.
+*   Access its own contextual menu by `Right Clicking` the main frame which give access to some options.
 
 ***
 
@@ -28,8 +31,8 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ### **AFPS** Key Features
 
-* It creates a simple frame that you can place wherever you want on the screen and it has a fast access to the FPS and render scale and FPS sliders.
-* Access its own contextual menu by `Right Clicking` the main frame which give access to some options.
+*   It creates a simple frame that you can place wherever you want on the screen and it has a fast access to the FPS and render scale and FPS sliders.
+*   Access its own contextual menu by `Right Clicking` the main frame which give access to some options.
 
 ***
 
@@ -37,30 +40,31 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ### **AAFK** Key Features
 
-* Slowly applies a somnolence vignette fade that darkens screen edges and loses peripheral focus.
-* Automatically limits in-game FPS cap to save hardware resources, and restores it instantly when you return.
-* Displays a gorgeous 3D model of your character playing random emotes on the right side of the screen.
-* Plays a smooth 360-degree rotation of your camera around your character.
-* Displays a clean countdown timer showing the remaining time before character logout (35 minutes if manually activated, 30 minutes if automatic).
-* Fully draggable and closable via close button or Escape key.
-* Access a context menu by right-clicking the frame to lock/unlock, reset position, or open options slider.
+*   Slowly applies a somnolence vignette fade that darkens screen edges and loses peripheral focus.
+*   Automatically limits in-game FPS cap to save hardware resources, and restores it instantly when you return.
+*   Displays a gorgeous 3D model of your character playing random emotes on the right side of the screen.
+*   Plays a smooth 360-degree rotation of your camera around your character.
+*   Displays a clean countdown timer showing the remaining time before character logout (35 minutes if manually activated, 30 minutes if automatic).
+*   Fully draggable and closable via close button or Escape key.
+*   Access a context menu by right-clicking the frame to lock/unlock, reset position, or open options slider.
 
 ***
 
-### **Ascension Hearthstone:** adds a cinematic camera effect when using any Hearthstone, teleport toy, or portal spell.
+### **Ascension Hearthstone:** is a QoL module that streamlines hearthstone casting.
 
 ### **AH** Key Features
 
-* Hides the user interface (except the cast bar) to increase immersion during the cast.
-* Automatically zooms the camera in to the character and rotates the view dynamically based on the cast duration.
-* Calculates camera rotations appropriately for short and long cast times.
-* Smoothly restores the original camera zoom and UI elements if the cast finishes or is interrupted by moving.
+*   Allows casting Hearthstone or teleport spells while in combat.
+*   Casting cancels correctly when interrupted.
 
 ***
 
 Este add on contendrá módulos más pequeños para proporcionar ajustes de calidad de vida o adiciones que me resulten útiles o que necesite.
 
 Aceptaré sugerencias para este add on, al igual que con cualquier otro add on que haya creado o vaya a crear.
+
+### Si quieres que alguno de los módulos se convierta en un complemento independiente, solo tienes que solicitarlo.
+
 
 ***
 
@@ -74,9 +78,9 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 #### Características principales de **AS**
 
-* Crea un marco sencillo que puedes colocar donde quieras en la pantalla y tiene un botón para silenciar rápidamente, y botones `+` y `-` para aumentar y disminuir el volumen maestro del juego.
-* Tienes acceso a un menú desplegable `VOL` para gestionar todos los controles deslizantes de audio (incluyendo el Volumen Maestro) individualmente.
-* Accede a su propio menú contextual haciendo **clic derecho** en el marco principal, lo que te da acceso a algunas opciones.
+*   Crea un marco sencillo que puedes colocar donde quieras en la pantalla y tiene un botón para silenciar rápidamente, y botones `+` y `-` para aumentar y disminuir el volumen maestro del juego.
+*   Tienes acceso a un menú desplegable `VOL` para gestionar todos los controles deslizantes de audio (incluyendo el Volumen Maestro) individualmente.
+*   Accede a su propio menú contextual haciendo **clic derecho** en el marco principal, lo que te da acceso a algunas opciones.
 
 ***
 
@@ -84,8 +88,8 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 #### Características principales de **AFPS**
 
-* Crea un marco sencillo que puedes colocar donde quieras en la pantalla y tiene acceso rápido a los controles deslizantes de FPS, escala de renderizado y FPS.
-* Accede a su propio menú contextual haciendo **clic derecho** en el marco principal, lo que te da acceso a algunas opciones.
+*   Crea un marco sencillo que puedes colocar donde quieras en la pantalla y tiene acceso rápido a los controles deslizantes de FPS, escala de renderizado y FPS.
+*   Accede a su propio menú contextual haciendo **clic derecho** en el marco principal, lo que te da acceso a algunas opciones.
 
 ***
 
@@ -93,23 +97,21 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 #### Características principales de **AAFK**
 
-* Aplica lentamente un desvanecimiento de viñeta de somnolencia que oscurece los bordes de la pantalla y pierde el enfoque periférico.
-* Limita automáticamente el límite de FPS del juego para ahorrar recursos de hardware, y lo restaura instantáneamente al regresar.
-* Muestra un magnífico modelo 3D de tu personaje realizando emotes aleatorios en el lado derecho de la pantalla.
-* Realiza una suave rotación de 360 grados de tu cámara alrededor de tu personaje.
-* Muestra un temporizador de cuenta regresiva limpio que indica el tiempo restante antes del cierre de sesión del personaje (35 minutos si se activa manualmente, 30 minutos si es automático).
-* Totalmente arrastrable y que se puede cerrar mediante el botón de cierre o la tecla Escape.
-* Accede a un menú contextual haciendo clic derecho en el marco para bloquear/desbloquear, restablecer posición o abrir el deslizador de opciones.
+*   Aplica lentamente un desvanecimiento de viñeta de somnolencia que oscurece los bordes de la pantalla y pierde el enfoque periférico.
+*   Limita automáticamente el límite de FPS del juego para ahorrar recursos de hardware, y lo restaura instantáneamente al regresar.
+*   Muestra un magnífico modelo 3D de tu personaje realizando emotes aleatorios en el lado derecho de la pantalla.
+*   Realiza una suave rotación de 360 grados de tu cámara alrededor de tu personaje.
+*   Muestra un temporizador de cuenta regresiva limpio que indica el tiempo restante antes del cierre de sesión del personaje (35 minutos si se activa manualmente, 30 minutos si es automático).
+*   Totalmente arrastrable y que se puede cerrar mediante el botón de cierre o la tecla Escape.
+*   Accede a un menú contextual haciendo clic derecho en el marco para bloquear/desbloquear, restablecer posición o abrir el deslizador de opciones.
 
 ***
 
-### **Ascension Hearthstone:** añade un efecto de cámara cinematográfica al usar cualquier Piedra de hogar, juguete de teletransporte o hechizo de portal.
+### **Ascension Hearthstone:** es un módulo que optimiza el uso de la piedra de hogar.
 
 #### Características principales de **AH**
 
-* Oculta la interfaz de usuario (excepto la barra de lanzamiento) para aumentar la inmersión durante el lanzamiento.
-* Acerca automáticamente la cámara al personaje y rota la vista dinámicamente según la duración del lanzamiento.
-* Calcula las rotaciones de cámara de manera adecuada para tiempos de lanzamiento cortos y largos.
-* Restaura suavemente el zoom original de la cámara y los elementos de la interfaz si el lanzamiento termina o es interrumpido por movimiento.
+*   Permite usar la piedra de hogar o hechizos de teletransporte durante el combate.
+*   El casteo se cancela correctamente al ser interrumpido.
 
 ***

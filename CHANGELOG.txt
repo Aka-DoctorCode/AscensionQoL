@@ -1,10 +1,8 @@
 <h1>@project-version@</h1>
 <br>
-<h2>NEW MODULE: Ascension Hearthstone!</h2>
+<h2>Ascension Hearthstone Updates</h2>
 <ul>
-    <li><b>Cinematic camera effect</b> added for Hearthstones, teleport toys, and portal spells.</li>
-    <li><b>UI hide during cast</b> (except cast bar) for immersion.</li>
-    <li><b>Movement cancels animation</b> and restores original camera.</li>
+    <li><b>Combat Casting:</b> Allows casting Hearthstone or teleport spells while in combat. Interrupted casting cancels normally.</li>
 </ul>
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>
