@@ -1,4 +1,4 @@
-<h1>@project-version@</h1>
+<h1>V15</h1>
 <br>
 <h2>Ascension Hearthstone Updates</h2>
 <ul>
