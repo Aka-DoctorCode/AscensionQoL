@@ -1,8 +1,9 @@
-<h1>V15</h1>
+<h1>@project-version@</h1>
 <br>
-<h2>Ascension Hearthstone Updates</h2>
+<h2>Ascension Mount Manager & Profession Helper</h2>
 <ul>
-    <li><b>Combat Casting:</b> Allows casting Hearthstone or teleport spells while in combat. Interrupted casting cancels normally.</li>
+    <li><b>Mount Manager:</b> Smart mount summoner that prioritizes aquatic, flying or ground mounts based on environment. Includes service mount menu.</li>
+    <li><b>Profession Helper:</b> Safe queue and keybind support for mass Disenchanting, Milling, and Prospecting with smart gear detection.</li>
 </ul>
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>
