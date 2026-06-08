@@ -19,3 +19,5 @@ AscensionFPS\AscensionFPS.lua
 AscensionAFK\AscensionAFK.lua
 AscensionAFK\afkdebug.lua
 AscensionHearthstone\AscensionHearthstone.lua
+AscensionMountManager\AscensionMountManager.lua
+AscensionProfessionHelper\AscensionProfessionHelper.lua
