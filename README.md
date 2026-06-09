@@ -68,16 +68,6 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ***
 
-### **Ascension Profession Helper:** streamlines mass Disenchanting, Milling, and Prospecting.
-
-### **APH** Key Features
-
-*   Safe queue and keybind support for mass profession tasks.
-*   Smart detection of item values to prevent deleting valuable gear upgrades.
-*   Blacklist system to ignore specific items you want to keep.
-
-***
-
 Este add on contendrá módulos más pequeños para proporcionar ajustes de calidad de vida o adiciones que me resulten útiles o que necesite.
 
 Aceptaré sugerencias para este add on, al igual que con cualquier otro add on que haya creado o vaya a crear.
@@ -141,15 +131,5 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 *   Prioriza monturas favoritas acuáticas, voladoras o terrestres según tu ubicación y estado actual.
 *   Incluye un menú contextual con clic derecho para acceso rápido a monturas de servicio.
-
-***
-
-### **Ascension Profession Helper:** optimiza el desencantamiento, molienda y prospección en masa.
-
-#### Características principales de **APH**
-
-*   Cola segura y soporte de atajos de teclado para tareas masivas de profesión.
-*   Detección inteligente del valor de los objetos para evitar eliminar mejoras de equipo valiosas.
-*   Sistema de lista negra para ignorar objetos específicos que desees conservar.
 
 ***

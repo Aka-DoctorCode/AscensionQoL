@@ -28,6 +28,7 @@ local defaults = {
             ["AscensionFPS"]   = true,
             ["AscensionAFK"]   = true,
             ["AscensionHearthstone"] = true,
+            ["AscensionMountManager"] = true,
         },
         positions = {
             configFrame    = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0    },
@@ -219,6 +220,17 @@ local function showConfigFrame()
                 profile.modules["AscensionHearthstone"] = v
             end
             print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionHearthstone|r " ..
+                (v and "enabled" or "disabled") .. " (Reload UI required).")
+        end)
+
+    layout:checkbox(nil, "Enable Ascension Mount Manager",
+        "Smart mount summoner that prioritizes mounts based on environment.",
+        function() return profile and profile.modules and profile.modules["AscensionMountManager"] or false end,
+        function(v)
+            if profile and profile.modules then
+                profile.modules["AscensionMountManager"] = v
+            end
+            print("|cff7f13ecAscension QoL|r: Module |cff00ff00AscensionMountManager|r " ..
                 (v and "enabled" or "disabled") .. " (Reload UI required).")
         end)
 
