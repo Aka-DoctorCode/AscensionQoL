@@ -1,4 +1,4 @@
-## Interface: 120005
+## Interface: 120007
 ## Title: Ascension QoL
 ## Notes: Quality of Life features to have easier access to in-game options.
 ## Author: Aka-DoctorCode

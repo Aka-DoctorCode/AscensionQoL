@@ -1,13 +1,6 @@
 <h1>@project-version@</h1>
-<br>
-<h2>Ascension Mount Manager</h2>
 <ul>
-    <li><b>Mount Manager:</b> Added an option to the `/aqol` menu to easily enable or disable the Ascension Mount Manager module.</li>
-</ul>
-<br>
-<h2>Ascension Profession Helper</h2>
-<ul>
-    <li><b>Profession Helper:</b> Removed from AscensionQoL. Ascension Profession Helper has been expanded and is now available as its own standalone addon.</li>
+    <li>Update TOC for 12.0.7</li>
 </ul>
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>
