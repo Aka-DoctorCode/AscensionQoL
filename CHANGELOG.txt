@@ -1,7 +1,7 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>License Update</li>
-    <li>Readme Updated</li>
+    <h2>Ascension Hearthstone</h2>
+    <li>Added a friendly reminder in the center of the screen during the Hearthstone cinematic if Ascension Cast Bar is not installed. Using ACB is highly recommended because it seamlessly integrates with the cinematic, remaining visible and stylish while the rest of the UI hides.</li>
 </ul>
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>

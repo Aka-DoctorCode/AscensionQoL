@@ -56,8 +56,8 @@ If you wish to turn off any of the modules type in chat: **`/aqol`** to access t
 
 ### **AH** Key Features
 
-*   Allows casting Hearthstone or teleport spells while in combat.
-*   Casting cancels correctly when interrupted.
+*   Features a beautiful cinematic camera zoom and rotation while casting Hearthstone.
+*   **Recommended:** Install **Ascension Cast Bar (ACB)** for the best cinematic experience, as the default UI (including default cast bars) is hidden during the effect.
 
 ***
 
@@ -122,8 +122,8 @@ Si deseas desactivar alguno de los módulos, escribe en el chat: **`/aqol`** par
 
 #### Características principales de **AH**
 
-*   Permite usar la piedra de hogar o hechizos de teletransporte durante el combate.
-*   El casteo se cancela correctamente al ser interrumpido.
+*   Cuenta con un efecto cinemático de cámara (zoom y rotación) al usar la Piedra de Hogar.
+*   **Recomendado:** Instalar **Ascension Cast Bar (ACB)** para la mejor experiencia cinemática, ya que la interfaz por defecto (incluyendo la barra de casteo original) se oculta durante este efecto.
 
 ***
 

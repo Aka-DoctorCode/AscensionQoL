@@ -266,16 +266,13 @@ local function restoreParents()
 end
 
 local function hideUIButCastBar()
-    if PlayerCastingBarFrame then
-        reparentFrame(PlayerCastingBarFrame, WorldFrame)
-    end
     if AscensionCastBarFrame then
         local anchor = AscensionCastBarFrame:GetParent()
         if anchor then
             reparentFrame(anchor, WorldFrame)
         end
     end
-    if AscensionCastBarTextFrame then
+    if AscensionCastBarTextFrame and AscensionCastBarTextFrame:GetParent() == UIParent then
         reparentFrame(AscensionCastBarTextFrame, WorldFrame)
     end
     
@@ -371,6 +368,21 @@ function AscensionHearthstone:startCastingEffect(duration, spellID)
     local isPortal = isPortalSpell(spellID)
     startCameraRotation(duration, isPortal, spellID)
     hideUIButCastBar()
+    
+    if not AscensionCastBarFrame then
+        if not self.warningTextFrame then
+            self.warningTextFrame = CreateFrame("Frame", nil, WorldFrame)
+            self.warningTextFrame:SetFrameStrata("HIGH")
+            self.warningTextFrame:SetSize(500, 50)
+            self.warningTextFrame.text = self.warningTextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            self.warningTextFrame.text:SetAllPoints()
+            self.warningTextFrame.text:SetText("ASCENSION CAST BAR is not installed.\nIf installed, you can see the progress.")
+            self.warningTextFrame.text:SetTextColor(1, 0.8, 0)
+        end
+        self.warningTextFrame:ClearAllPoints()
+        self.warningTextFrame:SetPoint("CENTER", WorldFrame, "CENTER", 0, -100)
+        self.warningTextFrame:Show()
+    end
 end
 
 function AscensionHearthstone:stopCastingEffect(wasSuccessful)
@@ -378,6 +390,10 @@ function AscensionHearthstone:stopCastingEffect(wasSuccessful)
     self.isCasting = false
     stopCameraRotation()
     restoreUI()
+    
+    if self.warningTextFrame then
+        self.warningTextFrame:Hide()
+    end
     
     local isPortal = self.currentSpellID and isPortalSpell(self.currentSpellID)
     self.currentSpellID = nil
